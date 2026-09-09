@@ -189,12 +189,63 @@ function restoreMedia(){
 restoreMedia();
 
 $("#addPostBtn").onclick=()=>$("#postDialog").showModal();
-$("#postForm").addEventListener("submit",e=>{
+$("#postForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  const f=$("#postInput").files?.[0];if(!f)return;
-  const url=URL.createObjectURL(f);
-  state.posts.unshift({id:"p"+Date.now(),type:f.type.startsWith("video/")?"video":"image",src:url,caption:$("#captionInput").value.trim(),likes:0});
-  save();renderGrid();$("#postDialog").close();$("#postForm").reset();toast("Publication ajoutée");
+
+  const f=$("#postInput").files?.[0];
+  if(!f)return;
+
+  toast("Publication en cours...");
+
+  const ext=f.name.split(".").pop();
+  const path="posts/"+Date.now()+"."+ext;
+
+  const {error:uploadError}=await supabase.storage
+    .from("media")
+    .upload(path,f,{upsert:true});
+
+  if(uploadError){
+    console.error(uploadError);
+    toast("Erreur lors de l'envoi");
+    return;
+  }
+
+  const {data:urlData}=supabase.storage
+    .from("media")
+    .getPublicUrl(path);
+
+  const mediaUrl=urlData.publicUrl;
+
+  const {data:post,error:postError}=await supabase
+    .from("posts")
+    .insert({
+      type:f.type.startsWith("video/")?"video":"image",
+      media_url:mediaUrl,
+      caption:$("#captionInput").value.trim(),
+      likes:0
+    })
+    .select()
+    .single();
+
+  if(postError){
+    console.error(postError);
+    toast("Erreur lors de l'enregistrement");
+    return;
+  }
+
+  state.posts.unshift({
+    id:post.id,
+    type:post.type,
+    src:post.media_url,
+    caption:post.caption||"",
+    likes:post.likes||0
+  });
+
+  save();
+  renderGrid();
+  $("#postDialog").close();
+  $("#postForm").reset();
+  toast("Publication ajoutée");
 });
 
 $("#themeBtn").onclick=()=>{
