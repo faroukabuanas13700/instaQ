@@ -130,13 +130,51 @@ $("#shareBtn").onclick=async()=>{
   try{await navigator.clipboard.writeText(location.href);toast("Lien du profil copié")}catch{toast("Copie du lien impossible")}
 };
 
-function setMedia(input,img,video,key){
-  const file=input.files?.[0];if(!file)return;
-  const url=URL.createObjectURL(file);
-  state.customMedia[key]=url; save();
-  if(file.type.startsWith("video/")){img.style.display="none";video.style.display="block";video.src=url;video.currentTime=0;video.play().catch(()=>{})}
-  else{video.pause();video.removeAttribute("src");video.load();video.style.display="none";img.style.display="block";img.src=url}
-}
+async function setMedia(input,img,video,key){
+  const file=input.files?.[0];
+  if(!file)return;
+
+  toast("Envoi en cours...");
+
+  const ext=file.name.split(".").pop();
+  const path=key+"/"+Date.now()+"."+ext;
+
+  const {error}=await supabase.storage
+    .from("media")
+    .upload(path,file,{upsert:true});
+
+  if(error){
+    console.error(error);
+    toast("Erreur lors de l'envoi");
+    return;
+  }
+
+  const {data}=supabase.storage
+    .from("media")
+    .getPublicUrl(path);
+
+  const url=data.publicUrl;
+
+  state.customMedia[key]=url;
+  save();
+
+  if(file.type.startsWith("video/")){
+    img.style.display="none";
+    video.style.display="block";
+    video.src=url;
+    video.currentTime=0;
+    video.play().catch(()=>{});
+  }else{
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    video.style.display="none";
+    img.style.display="block";
+    img.src=url;
+  }
+
+  toast("Modifié avec succès");
+   }
 $("#avatarInput").onchange=()=>setMedia($("#avatarInput"),$("#avatarImg"),$("#avatarVideo"),"avatar");
 $("#coverInput").onchange=()=>setMedia($("#coverInput"),$("#coverImg"),$("#coverVideo"),"cover");
 
