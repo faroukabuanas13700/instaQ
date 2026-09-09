@@ -2,6 +2,10 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const SUPABASE_URL = "https://sozzpklmlhtvwxbuecax.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Xo20VSelYyO9tLTgT0SVbQ_4ZvkwH4B";
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 const defaults = {
   name:"farouk abu anas",
   username:"farouk abu anas",
