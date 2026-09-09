@@ -1,6 +1,6 @@
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const SUPABASE_URL = "TON_URL_SUPABASE";
+const SUPABASE_URL = "https://sozzpklmlhtvwxbuecax.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Xo20VSelYyO9tLTgT0SVbQ_4ZvkwH4B";
 const defaults = {
   name:"farouk abu anas",
