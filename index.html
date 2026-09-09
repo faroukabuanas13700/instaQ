@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000">
+  <title>Instagram — Profil</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">Instagram</div>
+      <div class="top-actions">
+        <button class="icon-btn" id="addPostBtn" aria-label="Ajouter une publication">＋</button>
+        <button class="icon-btn" id="settingsBtn" aria-label="Paramètres">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="profile-page">
+    <section class="cover">
+      <div class="cover-media" id="coverMedia">
+        <img id="coverImg" alt="Bannière">
+        <video id="coverVideo" muted loop playsinline></video>
+      </div>
+      <label class="cover-edit" for="coverInput">Modifier la bannière</label>
+      <input id="coverInput" type="file" accept="image/*,video/*" hidden>
+    </section>
+
+    <section class="profile-head">
+      <label class="avatar-wrap" for="avatarInput" title="Modifier la photo de profil">
+        <img id="avatarImg" alt="Photo de profil">
+        <video id="avatarVideo" muted loop playsinline></video>
+        <span class="avatar-plus">+</span>
+      </label>
+      <input id="avatarInput" type="file" accept="image/*,video/*" hidden>
+
+      <div class="profile-main">
+        <div class="username-row">
+          <h1 id="username">farouk abu anas</h1>
+          <span class="verified">✓</span>
+        </div>
+        <div class="profile-actions">
+          <button class="primary-btn" id="editProfileBtn">Modifier le profil</button>
+          <button class="secondary-btn" id="shareBtn">Partager le profil</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div><strong id="postCount">0</strong><span>publications</span></div>
+      <div><strong id="followers">0</strong><span>abonnés</span></div>
+      <div><strong id="following">0</strong><span>abonnements</span></div>
+    </section>
+
+    <section class="bio">
+      <strong id="displayName">farouk abu anas</strong>
+      <p id="bioText">j'aime trop les salope 🔥🌹</p>
+      <a id="bioLink" href="#" target="_blank" rel="noopener"></a>
+    </section>
+
+    <nav class="tabs" aria-label="Publications">
+      <button class="tab active" data-filter="all" aria-label="Toutes les publications">▦</button>
+      <button class="tab" data-filter="image" aria-label="Photos">▧</button>
+      <button class="tab" data-filter="video" aria-label="Vidéos">▶</button>
+    </nav>
+
+    <section class="grid" id="postGrid"></section>
+    <div class="empty" id="emptyState">Aucune publication.</div>
+  </main>
+
+  <button class="theme-btn" id="themeBtn" aria-label="Changer le thème">☾</button>
+
+  <!-- Profile editor -->
+  <dialog class="dialog" id="profileDialog">
+    <form method="dialog" id="profileForm">
+      <div class="dialog-head"><h2>Modifier le profil</h2><button value="cancel" class="close">×</button></div>
+      <label>Nom<input id="nameInput" maxlength="40"></label>
+      <label>Nom d'utilisateur<input id="usernameInput" maxlength="30"></label>
+      <label>Bio<textarea id="bioInput" maxlength="150"></textarea></label>
+      <label>Lien<input id="linkInput" type="url" placeholder="https://..."></label>
+      <div class="dialog-actions"><button value="cancel" class="secondary-btn">Annuler</button><button value="default" class="primary-btn">Enregistrer</button></div>
+    </form>
+  </dialog>
+
+  <!-- Add post -->
+  <dialog class="dialog" id="postDialog">
+    <form method="dialog" id="postForm">
+      <div class="dialog-head"><h2>Nouvelle publication</h2><button value="cancel" class="close">×</button></div>
+      <label>Photo ou vidéo<input id="postInput" type="file" accept="image/*,video/*" required></label>
+      <label>Légende<textarea id="captionInput" maxlength="220" placeholder="Écris une légende..."></textarea></label>
+      <div class="dialog-actions"><button value="cancel" class="secondary-btn">Annuler</button><button value="default" class="primary-btn">Publier</button></div>
+    </form>
+  </dialog>
+
+  <!-- Fullscreen media viewer -->
+  <div class="viewer" id="viewer" aria-hidden="true">
+    <button class="viewer-close" id="viewerClose" aria-label="Fermer">×</button>
+    <button class="viewer-prev" id="viewerPrev" aria-label="Précédent">‹</button>
+    <div class="viewer-content" id="viewerContent"></div>
+    <button class="viewer-next" id="viewerNext" aria-label="Suivant">›</button>
+    <div class="viewer-caption" id="viewerCaption"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="script.js"></script>
+</body>
+</html>
