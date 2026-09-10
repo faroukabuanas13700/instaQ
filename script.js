@@ -1888,7 +1888,45 @@ $("#themeBtn")?.addEventListener(
 
   }
 );
+/* =========================================================
+DECONNEXION
+========================================================= */
 
+$("#logoutBtn")?.addEventListener(
+  "click",
+  async () => {
+
+    if (!supabaseReady()) return;
+
+    try {
+
+      const result =
+        await supabaseClient.auth.signOut();
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      showAuthScreen();
+
+      toast("Déconnecté");
+
+    } catch (error) {
+
+      console.error(
+        "Erreur déconnexion :",
+        error
+      );
+
+      toast(
+        error?.message ||
+        "Impossible de se déconnecter"
+      );
+
+    }
+
+  }
+);
 /* =========================================================
 PARAMETRES
 ========================================================= */
