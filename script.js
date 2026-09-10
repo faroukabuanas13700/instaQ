@@ -967,9 +967,3 @@ $("#shareBtn")?.addEventListener(
 MEDIA PROFIL / BANNIERE
 ========================================================= */
 
-async function setMedia(
-  input,
-  img,
-  video,
- 
-alert("SCRIPT OK");
