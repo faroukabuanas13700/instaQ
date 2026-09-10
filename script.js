@@ -1138,57 +1138,77 @@ $("#editProfileBtn")?.addEventListener(
 
 $("#profileForm")?.addEventListener(
   "submit",
-  e => {
+  async e => {
 
     e.preventDefault();
 
-    state.profile.name =
+    if (!supabaseReady()) return;
+
+    const name =
       $("#nameInput").value.trim() ||
       defaults.name;
 
-    state.profile.username =
+    const username =
       $("#usernameInput").value.trim() ||
       defaults.username;
 
-    state.profile.bio =
+    const bio =
       $("#bioInput").value.trim();
 
-    state.profile.link =
+    const link =
       $("#linkInput").value.trim();
-
-    save();
-
-    renderProfile();
-
-    $("#profileDialog")?.close();
-
-    toast("Profil modifié");
-
-  }
-);
-
-/* =========================================================
-PARTAGE
-========================================================= */
-
-$("#shareBtn")?.addEventListener(
-  "click",
-  async () => {
 
     try {
 
-      await navigator.clipboard.writeText(
-        location.href
+      const {
+        data: { user },
+        error: userError
+      } =
+        await supabaseClient.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error(
+          "Utilisateur non connecté."
+        );
+      }
+
+      const result =
+        await supabaseClient
+          .from("profiles")
+          .update({
+            name,
+            username,
+            bio,
+            link
+          })
+          .eq("id", user.id);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      state.profile.name = name;
+      state.profile.username = username;
+      state.profile.bio = bio;
+      state.profile.link = link;
+
+      save();
+      renderProfile();
+
+      $("#profileDialog")?.close();
+
+      toast("Profil enregistré");
+
+    } catch (error) {
+
+      console.error(
+        "Erreur modification profil :",
+        error
       );
 
       toast(
-        "Lien du profil copié"
-      );
-
-    } catch {
-
-      toast(
-        "Copie du lien impossible"
+        error?.message ||
+        "Impossible d'enregistrer le profil"
       );
 
     }
