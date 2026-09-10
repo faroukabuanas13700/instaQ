@@ -914,27 +914,157 @@ if ($("#postForm")) {
 
         renderGrid();
 
-        $("#postForm").reset();
+/* =========================================================
+   AJOUT D'UNE PUBLICATION DIRECTE
+   ========================================================= */
 
-        const dialog = $("#postDialog");
+if ($("#postInput")) {
+  $("#postInput").onchange = async () => {
 
-        if (dialog?.open) {
-          dialog.close();
-        }
+    const file = $("#postInput").files?.[0];
 
-        toast("Publication ajoutée");
+    if (!file) return;
 
-      } catch (error) {
+    if (!supabaseReady()) return;
+
+    const progress = $("#uploadProgress");
+    const progressText = $("#uploadProgressText");
+    const progressFill = $("#uploadProgressFill");
+
+    if (progress) progress.style.display = "block";
+    if (progressText) progressText.textContent = "Envoi en cours…";
+    if (progressFill) progressFill.style.width = "30%";
+
+    toast("Publication en cours...");
+
+    const extension =
+      file.name.split(".").pop()?.toLowerCase() || "bin";
+
+    const path =
+      "posts/" +
+      Date.now() +
+      "-" +
+      Math.random().toString(36).slice(2) +
+      "." +
+      extension;
+
+    try {
+
+      const upload =
+        await supabaseClient.storage
+          .from("media")
+          .upload(
+            path,
+            file,
+            {
+              upsert: false,
+              contentType: file.type
+            }
+          );
+
+      if (upload.error) {
         console.error(
-          "Erreur publication:",
-          error
+          "Erreur upload publication:",
+          upload.error
         );
 
-        toast("Erreur pendant la publication");
+        if (progress) progress.style.display = "none";
+
+        toast(
+          "Erreur upload : " +
+          upload.error.message
+        );
+
+        return;
       }
+
+      if (progressFill) progressFill.style.width = "70%";
+
+      const publicResult =
+        supabaseClient.storage
+          .from("media")
+          .getPublicUrl(path);
+
+      const mediaUrl =
+        publicResult.data?.publicUrl;
+
+      if (!mediaUrl) {
+        if (progress) progress.style.display = "none";
+        toast("URL de publication introuvable");
+        return;
+      }
+
+      const postData = {
+        type: file.type.startsWith("video/")
+          ? "video"
+          : "image",
+
+        media_url: mediaUrl,
+
+        caption: "",
+
+        likes: 0
+      };
+
+      const result =
+        await supabaseClient
+          .from("posts")
+          .insert(postData)
+          .select()
+          .single();
+
+      if (result.error) {
+        console.error(
+          "Erreur table posts:",
+          result.error
+        );
+
+        if (progress) progress.style.display = "none";
+
+        toast(
+          "Erreur base de données : " +
+          result.error.message
+        );
+
+        return;
+      }
+
+      if (progressFill) progressFill.style.width = "100%";
+
+      const post = result.data;
+
+      state.posts.unshift({
+        id: post.id,
+        type: post.type,
+        src: post.media_url,
+        caption: post.caption || "",
+        likes: post.likes || 0
+      });
+
+      save();
+      renderGrid();
+
+      $("#postInput").value = "";
+
+      toast("Publication ajoutée");
+
+      setTimeout(() => {
+        if (progress) progress.style.display = "none";
+      }, 500);
+
+    } catch (error) {
+
+      console.error(
+        "Erreur publication:",
+        error
+      );
+
+      if (progress) progress.style.display = "none";
+
+      toast("Erreur pendant la publication");
     }
-  );
-}
+  };
+   }
 
 /* =========================================================
    CHARGEMENT DES PUBLICATIONS SUPABASE
