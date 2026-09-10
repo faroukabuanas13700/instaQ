@@ -784,16 +784,7 @@ function restoreMedia() {
 
 if ($("#addPostBtn")) {
   $("#addPostBtn").onclick = () => {
-    const dialog = $("#postDialog");
-
-    if (
-      dialog &&
-      typeof dialog.showModal === "function"
-    ) {
-      dialog.showModal();
-    } else {
-      dialog?.setAttribute("open", "");
-    }
+    $("#postInput")?.click();
   };
 }
 
