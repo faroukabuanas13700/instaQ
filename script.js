@@ -1954,15 +1954,17 @@ async function initializeApp() {
 
       showAuthScreen();
 
-    if (result.data?.session?.user) {
+    } else if (
+      result.data?.session?.user
+    ) {
 
-  showApp();
+      showApp();
 
-  await loadUserProfile();
+      await loadUserProfile();
 
-  await loadSupabasePosts();
+      await loadSupabasePosts();
 
-} else {
+    } else {
 
       showAuthScreen();
 
