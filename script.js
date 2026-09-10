@@ -776,38 +776,7 @@ function restoreMedia() {
   }
        }
 
-  /* PHOTO PROFIL */
-
-  if (avatar) {
-    if (
-      avatar.startsWith("http://") ||
-      avatar.startsWith("https://")
-    ) {
-      $("#avatarImg").src = avatar;
-      $("#avatarImg").style.display = "block";
-      $("#avatarVideo").style.display = "none";
-    }
-  } else {
-    $("#avatarImg").src =
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&q=80";
-  }
-
-  /* BANNIERE */
-
-  if (cover) {
-    if (
-      cover.startsWith("http://") ||
-      cover.startsWith("https://")
-    ) {
-      $("#coverImg").src = cover;
-      $("#coverImg").style.display = "block";
-      $("#coverVideo").style.display = "none";
-    }
-  } else {
-    $("#coverImg").src =
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85";
-  }
-}
+  
 
 /* =========================================================
    AJOUT D'UNE PUBLICATION
