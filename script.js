@@ -1,3 +1,53 @@
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+/* =========================================================
+SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+"https://sozzpklmlhtvwxbuecax.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+"sb_publishable_Xo20VSelYyO9tLTgT0SVbQ_4ZvkwH4B";
+
+let supabaseClient = null;
+
+try {
+  if (
+    window.supabase &&
+    typeof window.supabase.createClient === "function"
+  ) {
+    supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+  }
+} catch (error) {
+  console.error("Erreur création Supabase :", error);
+}
+
+/* =========================================================
+OUTILS
+========================================================= */
+
+function toast(text) {
+  const el = $("#toast");
+
+  if (!el) return;
+
+  el.textContent = text;
+  el.classList.add("show");
+
+  clearTimeout(toast.timer);
+
+  toast.timer = setTimeout(() => {
+    el.classList.remove("show");
+  }, 2500);
+}
+
+function supabaseReady() {
+  if (!supabaseClient) {
     console.error("Supabase non disponible.");
     toast("Supabase ne s'est pas chargé.");
     return false;
