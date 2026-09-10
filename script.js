@@ -876,43 +876,9 @@ if ($("#postForm")) {
 
           likes: 0
         };
-
-        const result =
-          await supabaseClient
-            .from("posts")
-            .insert(postData)
-            .select()
-            .single();
-
-        if (result.error) {
-          console.error(
-            "Erreur table posts:",
-            result.error
-          );
-
-          toast(
-            "Erreur base de données : " +
-            result.error.message
-          );
-
-          return;
-        }
-
-        const post = result.data;
-
-        /* 4. Ajout immédiat à l'écran */
-
-        state.posts.unshift({
-          id: post.id,
-          type: post.type,
-          src: post.media_url,
-          caption: post.caption || "",
-          likes: post.likes || 0
-        });
-
-        save();
-
-        renderGrid();
+/* =========================================================
+   CHARGEMENT DES PUBLICATIONS SUPABASE
+   ========================================================= */
 
 /* =========================================================
    AJOUT D'UNE PUBLICATION DIRECTE
