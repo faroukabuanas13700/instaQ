@@ -972,3 +972,4 @@ async function setMedia(
   img,
   video,
  
+alert("SCRIPT OK");
