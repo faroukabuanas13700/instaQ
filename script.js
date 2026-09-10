@@ -207,9 +207,9 @@ PROFIL PAR DEFAUT
 ========================================================= */
 
 const defaults = {
-  name: "farouk abu anas",
-  username: "farouk abu anas",
-  bio: "j'aime trop les salope 🔥🌹",
+  name: "",
+  username: "",
+  bio: "",
   link: "",
   followers: 0,
   following: 0
@@ -436,11 +436,15 @@ async function signupUser(email, password) {
 
     if (result.data?.session) {
 
-      showApp();
+  await loadUserProfile();
 
-      toast("Compte créé");
+  showApp();
 
-      loadSupabasePosts();
+  toast("Compte créé");
+
+  await loadSupabasePosts();
+
+}
 
     } else {
 
