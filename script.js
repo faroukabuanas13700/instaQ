@@ -143,21 +143,6 @@ function addAuthStyles() {
       min-height:16px;
       margin-top:2px;
     }
-
-    #app{
-      min-height:100vh;
-    }
-
-    .logout-btn{
-      width:100%;
-      margin-top:10px;
-      padding:10px;
-      border:1px solid #333;
-      background:transparent;
-      color:#fff;
-      border-radius:6px;
-      cursor:pointer;
-    }
   `;
 
   document.head.appendChild(style);
@@ -199,16 +184,15 @@ async function loginUser(email, password) {
   try {
     const result =
       await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
+        email,
+        password
       });
 
     if (result.error) {
       console.error(result.error);
 
       if (errorBox) {
-        errorBox.textContent =
-          result.error.message;
+        errorBox.textContent = result.error.message;
       }
 
       if (button) {
@@ -219,33 +203,23 @@ async function loginUser(email, password) {
       return;
     }
 
-    /*
-      On affiche immédiatement l'application.
-      L'écouteur Supabase confirmera également la session.
-    */
-
     showApp();
     toast("Connexion réussie");
 
     await loadSupabasePosts();
 
-    if (button) {
-      button.disabled = false;
-      button.textContent = "Se connecter";
-    }
-
   } catch (error) {
-    console.error("Erreur connexion:", error);
+    console.error("Erreur connexion :", error);
 
     if (errorBox) {
       errorBox.textContent =
-        "Erreur de connexion. Réessayez.";
+        error.message || "Erreur de connexion.";
     }
+  }
 
-    if (button) {
-      button.disabled = false;
-      button.textContent = "Se connecter";
-    }
+  if (button) {
+    button.disabled = false;
+    button.textContent = "Se connecter";
   }
 }
 
@@ -269,21 +243,15 @@ async function signupUser(email, password) {
   try {
     const result =
       await supabaseClient.auth.signUp({
-        email: email,
-        password: password
+        email,
+        password
       });
 
     if (result.error) {
       console.error(result.error);
 
       if (errorBox) {
-        errorBox.textContent =
-          result.error.message;
-      }
-
-      if (button) {
-        button.disabled = false;
-        button.textContent = "Créer un compte";
+        errorBox.textContent = result.error.message;
       }
 
       return;
@@ -292,26 +260,21 @@ async function signupUser(email, password) {
     if (result.data.session) {
       showApp();
       toast("Compte créé");
-
       await loadSupabasePosts();
-
     } else {
       toast("Compte créé. Vous pouvez vous connecter.");
     }
 
-    if (button) {
-      button.disabled = false;
-      button.textContent = "Créer un compte";
-    }
-
   } catch (error) {
-    console.error("Erreur inscription:", error);
+    console.error("Erreur inscription :", error);
 
     if (errorBox) {
       errorBox.textContent =
+        error.message ||
         "Erreur pendant la création du compte.";
     }
 
+  } finally {
     if (button) {
       button.disabled = false;
       button.textContent = "Créer un compte";
@@ -340,13 +303,8 @@ function setupAuth() {
         $("#loginPassword")?.value;
 
       if (!email || !password) {
-        const errorBox = $("#loginError");
-
-        if (errorBox) {
-          errorBox.textContent =
-            "Veuillez remplir les deux champs.";
-        }
-
+        $("#loginError").textContent =
+          "Veuillez remplir les deux champs.";
         return;
       }
 
@@ -365,13 +323,8 @@ function setupAuth() {
         $("#signupPassword")?.value;
 
       if (!email || !password) {
-        const errorBox = $("#signupError");
-
-        if (errorBox) {
-          errorBox.textContent =
-            "Veuillez remplir les deux champs.";
-        }
-
+        $("#signupError").textContent =
+          "Veuillez remplir les deux champs.";
         return;
       }
 
@@ -677,7 +630,7 @@ LIKE
 
 function like(id, showAnimation = false) {
   const post =
-    state.posts.find(p => p.id === id);
+    state.posts.find(p => p.id == id);
 
   if (!post) return;
 
@@ -772,7 +725,6 @@ function showViewerPost() {
   if (post.type === "video") {
     element.autoplay = true;
     element.controls = true;
-    element.muted = false;
 
     element.addEventListener(
       "canplay",
@@ -967,3 +919,289 @@ $("#shareBtn")?.addEventListener(
 MEDIA PROFIL / BANNIERE
 ========================================================= */
 
+async function setMedia(input, img, video, storagePath, type) {
+  const file = input?.files?.[0];
+
+  if (!file) return;
+
+  if (!supabaseReady()) return;
+
+  const progress = $("#uploadProgress");
+  const progressText = $("#uploadProgressText");
+  const progressFill = $("#uploadProgressFill");
+
+  if (progress) {
+    progress.classList.add("show");
+  }
+
+  if (progressText)
+    progressText.textContent = "Envoi… 10%";
+
+  if (progressFill)
+    progressFill.style.width = "10%";
+
+  try {
+    const extension =
+      file.name.split(".").pop().toLowerCase();
+
+    const filename =
+      type +
+      "_" +
+      Date.now() +
+      "_" +
+      Math.random().toString(36).slice(2) +
+      "." +
+      extension;
+
+    const path =
+      storagePath + "/" + filename;
+
+    if (progressText)
+      progressText.textContent = "Envoi… 30%";
+
+    if (progressFill)
+      progressFill.style.width = "30%";
+
+    const upload =
+      await supabaseClient.storage
+        .from("media")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: false
+        });
+
+    if (upload.error) {
+      throw upload.error;
+    }
+
+    if (progressText)
+      progressText.textContent = "Envoi… 70%";
+
+    if (progressFill)
+      progressFill.style.width = "70%";
+
+    const publicResult =
+      supabaseClient.storage
+        .from("media")
+        .getPublicUrl(path);
+
+    const publicUrl =
+      publicResult.data?.publicUrl;
+
+    if (!publicUrl) {
+      throw new Error(
+        "Impossible d'obtenir l'URL publique."
+      );
+    }
+
+    state.customMedia[type] = publicUrl;
+
+    save();
+
+    if (type === "avatar") {
+      displayMedia(
+        img,
+        video,
+        publicUrl,
+        file.type
+      );
+    }
+
+    if (type === "cover") {
+      displayMedia(
+        img,
+        video,
+        publicUrl,
+        file.type
+      );
+    }
+
+    if (progressText)
+      progressText.textContent = "Envoi… 100%";
+
+    if (progressFill)
+      progressFill.style.width = "100%";
+
+    toast(
+      type === "avatar"
+        ? "Photo de profil modifiée"
+        : "Bannière modifiée"
+    );
+
+  } catch (error) {
+    console.error(
+      "Erreur upload média :",
+      error
+    );
+
+    toast(
+      error.message ||
+      "Erreur pendant l'envoi"
+    );
+
+  } finally {
+    setTimeout(() => {
+      if (progress)
+        progress.classList.remove("show");
+
+      if (progressFill)
+        progressFill.style.width = "0%";
+    }, 700);
+  }
+}
+
+function displayMedia(img, video, url, mime = "") {
+  const isVideo =
+    mime.startsWith("video/") ||
+    /\.(mp4|webm|mov|m4v|ogg)$/i.test(url);
+
+  if (isVideo) {
+    if (img) {
+      img.style.display = "none";
+      img.removeAttribute("src");
+    }
+
+    if (video) {
+      video.src = url;
+      video.style.display = "block";
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+
+      video.play().catch(() => {});
+    }
+
+  } else {
+    if (video) {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+      video.style.display = "none";
+    }
+
+    if (img) {
+      img.src = url;
+      img.style.display = "block";
+    }
+  }
+}
+
+function restoreMedia() {
+  const avatarUrl =
+    state.customMedia.avatar;
+
+  const coverUrl =
+    state.customMedia.cover;
+
+  if (avatarUrl) {
+    displayMedia(
+      $("#avatarImg"),
+      $("#avatarVideo"),
+      avatarUrl
+    );
+  }
+
+  if (coverUrl) {
+    displayMedia(
+      $("#coverImg"),
+      $("#coverVideo"),
+      coverUrl
+    );
+  }
+}
+
+$("#avatarInput")?.addEventListener(
+  "change",
+  () => {
+    setMedia(
+      $("#avatarInput"),
+      $("#avatarImg"),
+      $("#avatarVideo"),
+      "profiles",
+      "avatar"
+    );
+  }
+);
+
+$("#coverInput")?.addEventListener(
+  "change",
+  () => {
+    setMedia(
+      $("#coverInput"),
+      $("#coverImg"),
+      $("#coverVideo"),
+      "covers",
+      "cover"
+    );
+  }
+);
+
+/* =========================================================
+PUBLICATION
+========================================================= */
+
+$("#addPostBtn")?.addEventListener(
+  "click",
+  () => {
+    $("#postInput")?.click();
+  }
+);
+
+$("#postInput")?.addEventListener(
+  "change",
+  async () => {
+    const file =
+      $("#postInput")?.files?.[0];
+
+    if (!file) return;
+
+    await uploadPost(file);
+
+    $("#postInput").value = "";
+  }
+);
+
+async function uploadPost(file) {
+  if (!supabaseReady()) return;
+
+  const progress =
+    $("#uploadProgress");
+
+  const progressText =
+    $("#uploadProgressText");
+
+  const progressFill =
+    $("#uploadProgressFill");
+
+  if (progress)
+    progress.classList.add("show");
+
+  if (progressText)
+    progressText.textContent =
+      "Envoi… 10%";
+
+  if (progressFill)
+    progressFill.style.width = "10%";
+
+  try {
+    const isVideo =
+      file.type.startsWith("video/");
+
+    const type =
+      isVideo ? "video" : "image";
+
+    const extension =
+      file.name.split(".").pop().toLowerCase();
+
+    const filename =
+      Date.now() +
+      "_" +
+      Math.random().toString(36).slice(2) +
+      "." +
+      extension;
+
+    const path =
+      "posts/" + filename;
+
+    if (progressText)
+     
