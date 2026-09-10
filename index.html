@@ -84,15 +84,8 @@
     </form>
   </dialog>
 
-  <!-- Add post -->
-  <dialog class="dialog" id="postDialog">
-    <form method="dialog" id="postForm">
-      <div class="dialog-head"><h2>Nouvelle publication</h2><button value="cancel" class="close">×</button></div>
-      <label>Photo ou vidéo<input id="postInput" type="file" accept="image/*,video/*" required></label>
-      <label>Légende<textarea id="captionInput" maxlength="220" placeholder="Écris une légende..."></textarea></label>
-      <div class="dialog-actions"><button value="cancel" class="secondary-btn">Annuler</button><button value="default" class="primary-btn">Publier</button></div>
-    </form>
-  </dialog>
+<!-- Add post -->
+<input id="postInput" type="file" accept="image/*,video/*" hidden>
 
   <!-- Fullscreen media viewer -->
   <div class="viewer" id="viewer" aria-hidden="true">
