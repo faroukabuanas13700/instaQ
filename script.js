@@ -703,6 +703,79 @@ function restoreMedia() {
   const avatar = state.customMedia.avatar;
   const cover = state.customMedia.cover;
 
+  /* =========================
+     PHOTO DE PROFIL
+     ========================= */
+
+  if (avatar) {
+    const isVideo =
+      /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(avatar);
+
+    if (isVideo) {
+      $("#avatarImg").style.display = "none";
+      $("#avatarVideo").style.display = "block";
+      $("#avatarVideo").src = avatar;
+      $("#avatarVideo").muted = true;
+      $("#avatarVideo").loop = true;
+      $("#avatarVideo").playsInline = true;
+
+      $("#avatarVideo").load();
+
+      $("#avatarVideo").play().catch(() => {});
+    } else {
+      $("#avatarVideo").pause();
+      $("#avatarVideo").removeAttribute("src");
+      $("#avatarVideo").load();
+
+      $("#avatarVideo").style.display = "none";
+      $("#avatarImg").style.display = "block";
+      $("#avatarImg").src = avatar;
+    }
+  } else {
+    $("#avatarVideo").style.display = "none";
+    $("#avatarImg").style.display = "block";
+
+    $("#avatarImg").src =
+      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&q=80";
+  }
+
+  /* =========================
+     BANNIERE
+     ========================= */
+
+  if (cover) {
+    const isVideo =
+      /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(cover);
+
+    if (isVideo) {
+      $("#coverImg").style.display = "none";
+      $("#coverVideo").style.display = "block";
+      $("#coverVideo").src = cover;
+      $("#coverVideo").muted = true;
+      $("#coverVideo").loop = true;
+      $("#coverVideo").playsInline = true;
+
+      $("#coverVideo").load();
+
+      $("#coverVideo").play().catch(() => {});
+    } else {
+      $("#coverVideo").pause();
+      $("#coverVideo").removeAttribute("src");
+      $("#coverVideo").load();
+
+      $("#coverVideo").style.display = "none";
+      $("#coverImg").style.display = "block";
+      $("#coverImg").src = cover;
+    }
+  } else {
+    $("#coverVideo").style.display = "none";
+    $("#coverImg").style.display = "block";
+
+    $("#coverImg").src =
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85";
+  }
+       }
+
   /* PHOTO PROFIL */
 
   if (avatar) {
