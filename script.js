@@ -359,7 +359,7 @@ async function loginUser(email, password) {
     /* IMPORTANT :
        on affiche immédiatement l'application */
     showApp();
-
+await loadUserProfile();
     toast("Connexion réussie");
 
     /* Chargement des publications sans bloquer l'accès */
@@ -586,7 +586,67 @@ function setupAuth() {
 /* =========================================================
 PROFIL
 ========================================================= */
+async function loadUserProfile() {
+  if (!supabaseReady()) return;
 
+  try {
+    const {
+      data: { user },
+      error: userError
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !user) return;
+
+    const result = await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (result.error) {
+      console.error(
+        "Erreur chargement profil :",
+        result.error
+      );
+      return;
+    }
+
+    const profile = result.data;
+
+    state.profile.name =
+      profile.name || defaults.name;
+
+    state.profile.username =
+      profile.username || defaults.username;
+
+    state.profile.bio =
+      profile.bio || "";
+
+    state.profile.link =
+      profile.link || "";
+
+    if (profile.avatar_url) {
+      state.customMedia.avatar =
+        profile.avatar_url;
+    }
+
+    if (profile.cover_url) {
+      state.customMedia.cover =
+        profile.cover_url;
+    }
+
+    save();
+
+    renderProfile();
+    restoreMedia();
+
+  } catch (error) {
+    console.error(
+      "Erreur loadUserProfile :",
+      error
+    );
+  }
+}
 function renderProfile() {
 
   if ($("#displayName"))
@@ -1894,15 +1954,15 @@ async function initializeApp() {
 
       showAuthScreen();
 
-    } else if (
-      result.data?.session?.user
-    ) {
+    if (result.data?.session?.user) {
 
-      showApp();
+  showApp();
 
-      loadSupabasePosts();
+  await loadUserProfile();
 
-    } else {
+  await loadSupabasePosts();
+
+} else {
 
       showAuthScreen();
 
