@@ -4240,7 +4240,312 @@ $("#userSearchInput")
     }
   );
 
+/* =========================================================
+EXPLORER
+========================================================= */
 
+let explorePosts = [];
+
+async function loadExplorePosts() {
+
+  if (
+    !supabaseReady() ||
+    !currentUser
+  ) {
+    return;
+  }
+
+  const grid =
+    $("#exploreGrid");
+
+  const empty =
+    $("#exploreEmpty");
+
+  if (!grid) {
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("posts")
+        .select(
+          "id,user_id,type,media_url,caption,likes"
+        )
+        .order(
+          "id",
+          {
+            ascending: false
+          }
+        )
+        .limit(100);
+
+    if (error) {
+      throw error;
+    }
+
+    explorePosts =
+      (data || []).map(
+        post => ({
+          id: post.id,
+          userId: post.user_id,
+          type:
+            post.type || "image",
+          src:
+            post.media_url,
+          caption:
+            post.caption || "",
+          likes:
+            post.likes || 0
+        })
+      );
+
+    renderExploreGrid(
+      explorePosts
+    );
+
+    if (empty) {
+      empty.style.display =
+        explorePosts.length
+          ? "none"
+          : "block";
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Erreur chargement Explorer :",
+      error
+    );
+
+    grid.innerHTML = "";
+
+    if (empty) {
+      empty.style.display =
+        "block";
+    }
+
+    toast(
+      "Impossible de charger Explorer"
+    );
+  }
+}
+
+
+function renderExploreGrid(posts) {
+
+  const grid =
+    $("#exploreGrid");
+
+  if (!grid) {
+    return;
+  }
+
+  grid.innerHTML = "";
+
+  posts.forEach(
+    post => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+      card.className =
+        "explore-post";
+
+      card.dataset.id =
+        post.id;
+
+      const media =
+        mediaElement(
+          post
+        );
+
+      card.appendChild(
+        media
+      );
+
+      if (
+        post.type === "video"
+      ) {
+
+        const icon =
+          document.createElement(
+            "span"
+          );
+
+        icon.className =
+          "explore-video-icon";
+
+        icon.textContent =
+          "▶";
+
+        card.appendChild(
+          icon
+        );
+
+        media.muted = true;
+        media.loop = true;
+        media.autoplay = true;
+        media.playsInline = true;
+
+        media
+          .play()
+          .catch(() => {});
+      }
+
+      card.addEventListener(
+        "click",
+        async () => {
+
+          if (post.userId) {
+            await showProfileInterface();
+
+            await openUserProfile(
+              post.userId
+            );
+          }
+
+        }
+      );
+
+      grid.appendChild(
+        card
+      );
+    }
+  );
+
+  requestAnimationFrame(
+    playExploreVideos
+  );
+}
+
+
+function playExploreVideos() {
+
+  $$("#exploreGrid video")
+    .forEach(
+      video => {
+
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+
+        video
+          .play()
+          .catch(() => {});
+
+      }
+    );
+}
+
+
+async function showExploreInterface() {
+
+  const profilePage =
+    $("#profilePage");
+
+  const profileSearch =
+    $("#profileSearchSection");
+
+  const explorePage =
+    $("#explorePage");
+
+  const topbar =
+    $(".topbar");
+
+  if (profilePage) {
+    profilePage.hidden = true;
+  }
+
+  if (profileSearch) {
+    profileSearch.hidden = true;
+  }
+
+  if (topbar) {
+    topbar.style.display =
+      "none";
+  }
+
+  if (explorePage) {
+    explorePage.hidden = false;
+  }
+
+  $$(".bottom-nav-btn")
+    .forEach(
+      button => {
+        button.classList.remove(
+          "active"
+        );
+      }
+    );
+
+  $("#bottomSearchBtn")
+    ?.classList
+    .add(
+      "active"
+    );
+
+  await loadExplorePosts();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+async function showProfileInterface() {
+
+  const profilePage =
+    $("#profilePage");
+
+  const profileSearch =
+    $("#profileSearchSection");
+
+  const explorePage =
+    $("#explorePage");
+
+  const topbar =
+    $(".topbar");
+
+  if (explorePage) {
+    explorePage.hidden = true;
+  }
+
+  if (profilePage) {
+    profilePage.hidden = false;
+  }
+
+  if (profileSearch) {
+    profileSearch.hidden = false;
+  }
+
+  if (topbar) {
+    topbar.style.display =
+      "";
+  }
+
+  $$(".bottom-nav-btn")
+    .forEach(
+      button => {
+        button.classList.remove(
+          "active"
+        );
+      }
+    );
+
+  $("#bottomProfileBtn")
+    ?.classList
+    .add(
+      "active"
+    );
+}
 /* =========================================================
 NAVIGATION BAS
 ========================================================= */
@@ -4248,40 +4553,26 @@ NAVIGATION BAS
 $("#bottomSearchBtn")
   ?.addEventListener(
     "click",
-    () => {
+    async () => {
 
-      const input =
-        $("#userSearchInput");
+      await showExploreInterface();
 
-
-      if (input) {
-
-        input.scrollIntoView({
-          behavior:
-            "smooth",
-
-          block:
-            "center"
-        });
-
-
-        setTimeout(
-          () =>
-            input.focus(),
-          350
-        );
-
-      }
+      setTimeout(
+        () => {
+          $("#exploreSearchInput")
+            ?.focus();
+        },
+        300
+      );
 
     }
   );
-
 
 $("#bottomProfileBtn")
   ?.addEventListener(
     "click",
     async () => {
-
+await showProfileInterface();
       if (
         viewingOtherProfile
       ) {
