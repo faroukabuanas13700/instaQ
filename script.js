@@ -3249,7 +3249,308 @@ $("#followBtn")
     "click",
     toggleFollow
   );
+/* =========================================================
+LISTE ABONNÉS / ABONNEMENTS
+========================================================= */
 
+async function openFollowList(type) {
+
+  if (
+    !supabaseReady() ||
+    !currentUser
+  ) {
+    return;
+  }
+
+  const userId =
+    activeProfileId ||
+    currentUser.id;
+
+  const dialog =
+    $("#followListDialog");
+
+  const title =
+    $("#followListTitle");
+
+  const content =
+    $("#followListContent");
+
+  if (
+    !dialog ||
+    !title ||
+    !content
+  ) {
+    return;
+  }
+
+  const isFollowers =
+    type === "followers";
+
+  title.textContent =
+    isFollowers
+      ? "Abonnés"
+      : "Abonnements";
+
+  content.innerHTML =
+    `<div class="follow-list-empty">
+      Chargement...
+    </div>`;
+
+  if (
+    typeof dialog.showModal ===
+    "function" &&
+    !dialog.open
+  ) {
+    dialog.showModal();
+  }
+
+  try {
+
+    let followResult;
+
+    if (isFollowers) {
+
+      followResult =
+        await supabaseClient
+          .from("follows")
+          .select("follower_id")
+          .eq(
+            "following_id",
+            userId
+          );
+
+    } else {
+
+      followResult =
+        await supabaseClient
+          .from("follows")
+          .select("following_id")
+          .eq(
+            "follower_id",
+            userId
+          );
+
+    }
+
+    if (followResult.error) {
+      throw followResult.error;
+    }
+
+    const ids =
+      (followResult.data || [])
+        .map(item =>
+          isFollowers
+            ? item.follower_id
+            : item.following_id
+        )
+        .filter(Boolean);
+
+    if (!ids.length) {
+
+      content.innerHTML =
+        `<div class="follow-list-empty">
+          ${
+            isFollowers
+              ? "Aucun abonné pour le moment"
+              : "Aucun abonnement pour le moment"
+          }
+        </div>`;
+
+      return;
+    }
+
+    const {
+      data: profiles,
+      error: profilesError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,avatar_url"
+        )
+        .in(
+          "id",
+          ids
+        );
+
+    if (profilesError) {
+      throw profilesError;
+    }
+
+    const profileMap =
+      new Map(
+        (profiles || []).map(
+          profile => [
+            profile.id,
+            profile
+          ]
+        )
+      );
+
+    content.innerHTML = "";
+
+    ids.forEach(id => {
+
+      const profile =
+        profileMap.get(id);
+
+      if (!profile) {
+        return;
+      }
+
+      const row =
+        document.createElement(
+          "div"
+        );
+
+      row.className =
+        "follow-list-item";
+
+      const avatar =
+        document.createElement(
+          "div"
+        );
+
+      avatar.className =
+        "follow-list-avatar";
+
+      if (profile.avatar_url) {
+
+        const img =
+          document.createElement(
+            "img"
+          );
+
+        img.src =
+          profile.avatar_url;
+
+        img.alt =
+          profile.username || "";
+
+        avatar.appendChild(
+          img
+        );
+
+      } else {
+
+        avatar.textContent =
+          "👤";
+
+      }
+
+      const text =
+        document.createElement(
+          "div"
+        );
+
+      text.className =
+        "follow-list-text";
+
+      const username =
+        document.createElement(
+          "div"
+        );
+
+      username.className =
+        "follow-list-username";
+
+      username.textContent =
+        profile.username ||
+        "Utilisateur";
+
+      const name =
+        document.createElement(
+          "div"
+        );
+
+      name.className =
+        "follow-list-name";
+
+      name.textContent =
+        profile.name || "";
+
+      text.appendChild(
+        username
+      );
+
+      text.appendChild(
+        name
+      );
+
+      row.appendChild(
+        avatar
+      );
+
+      row.appendChild(
+        text
+      );
+
+      row.addEventListener(
+        "click",
+        async () => {
+
+          dialog.close();
+
+          await openUserProfile(
+            profile.id
+          );
+
+        }
+      );
+
+      content.appendChild(
+        row
+      );
+
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Erreur liste abonnements :",
+      error
+    );
+
+    content.innerHTML =
+      `<div class="follow-list-empty">
+        Impossible de charger la liste
+      </div>`;
+
+  }
+
+}
+
+
+$("#followersBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+      openFollowList(
+        "followers"
+      );
+    }
+  );
+
+
+$("#followingBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+      openFollowList(
+        "following"
+      );
+    }
+  );
+
+
+$("#followListClose")
+  ?.addEventListener(
+    "click",
+    () => {
+      $("#followListDialog")
+        ?.close();
+    }
+  );
 /* =========================================================
 RECHERCHE UTILISATEURS
 ========================================================= */
