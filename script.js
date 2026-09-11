@@ -872,7 +872,16 @@ async function loadUserProfile() {
       profile?.cover_url ||
       "";
 
+activeProfileId =
+  currentUser.id;
 
+await loadFollowCounts(
+  currentUser.id
+);
+
+await updateFollowButton(
+  currentUser.id
+);
     save();
 
     renderProfile();
@@ -2980,7 +2989,266 @@ $$(".tab")
 
     }
   );
+/* =========================================================
+ABONNEMENTS
+========================================================= */
 
+async function loadFollowCounts(userId) {
+
+  if (
+    !supabaseReady() ||
+    !userId
+  ) {
+    return;
+  }
+
+  try {
+
+    const [
+      followersResult,
+      followingResult
+    ] = await Promise.all([
+
+      supabaseClient
+        .from("follows")
+        .select(
+          "*",
+          {
+            count: "exact",
+            head: true
+          }
+        )
+        .eq(
+          "following_id",
+          userId
+        ),
+
+      supabaseClient
+        .from("follows")
+        .select(
+          "*",
+          {
+            count: "exact",
+            head: true
+          }
+        )
+        .eq(
+          "follower_id",
+          userId
+        )
+
+    ]);
+
+    if (followersResult.error) {
+      throw followersResult.error;
+    }
+
+    if (followingResult.error) {
+      throw followingResult.error;
+    }
+
+    state.profile.followers =
+      followersResult.count || 0;
+
+    state.profile.following =
+      followingResult.count || 0;
+
+    renderProfile();
+
+  } catch (error) {
+
+    console.error(
+      "Erreur compteurs abonnements :",
+      error
+    );
+
+  }
+}
+
+
+async function updateFollowButton(userId) {
+
+  const button =
+    $("#followBtn");
+
+  if (
+    !button ||
+    !currentUser ||
+    !userId
+  ) {
+    return;
+  }
+
+  if (
+    userId === currentUser.id
+  ) {
+
+    button.hidden = true;
+    return;
+
+  }
+
+  button.hidden = false;
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("follows")
+        .select(
+          "follower_id,following_id"
+        )
+        .eq(
+          "follower_id",
+          currentUser.id
+        )
+        .eq(
+          "following_id",
+          userId
+        )
+        .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    const following =
+      !!data;
+
+    button.dataset.following =
+      following
+        ? "true"
+        : "false";
+
+    button.textContent =
+      following
+        ? "Abonné(e)"
+        : "S’abonner";
+
+    button.classList.toggle(
+      "following",
+      following
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erreur état abonnement :",
+      error
+    );
+
+  }
+}
+
+
+async function toggleFollow() {
+
+  const button =
+    $("#followBtn");
+
+  if (
+    !button ||
+    !currentUser ||
+    !activeProfileId ||
+    activeProfileId === currentUser.id
+  ) {
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+
+    const alreadyFollowing =
+      button.dataset.following ===
+      "true";
+
+    if (alreadyFollowing) {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("follows")
+          .delete()
+          .eq(
+            "follower_id",
+            currentUser.id
+          )
+          .eq(
+            "following_id",
+            activeProfileId
+          );
+
+      if (error) {
+        throw error;
+      }
+
+      toast(
+        "Vous ne suivez plus ce compte"
+      );
+
+    } else {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("follows")
+          .insert({
+            follower_id:
+              currentUser.id,
+
+            following_id:
+              activeProfileId
+          });
+
+      if (error) {
+        throw error;
+      }
+
+      toast(
+        "Vous suivez maintenant ce compte"
+      );
+
+    }
+
+    await updateFollowButton(
+      activeProfileId
+    );
+
+    await loadFollowCounts(
+      activeProfileId
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erreur abonnement :",
+      error
+    );
+
+    toast(
+      "Impossible de modifier l’abonnement"
+    );
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+$("#followBtn")
+  ?.addEventListener(
+    "click",
+    toggleFollow
+  );
 
 /* =========================================================
 RECHERCHE UTILISATEURS
@@ -3415,7 +3683,8 @@ async function openUserProfile(
     viewingOtherProfile =
       userId !==
       currentUser?.id;
-
+activeProfileId =
+  userId;
 
     state.profile.name =
       profile.name ||
@@ -3486,7 +3755,13 @@ async function openUserProfile(
     setOwnerMode(
       !viewingOtherProfile
     );
+await loadFollowCounts(
+  userId
+);
 
+await updateFollowButton(
+  userId
+);
 
     const resultsBox =
       $("#userSearchResults");
@@ -3577,7 +3852,8 @@ async function returnToOwnProfile() {
 
   viewingOtherProfile =
     false;
-
+activeProfileId =
+  currentUser.id;
 
   setOwnerMode(
     true
