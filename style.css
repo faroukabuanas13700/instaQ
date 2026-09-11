@@ -1577,3 +1577,13 @@ PAGE EXPLORER
 #explorePage .explore-search-wrap{
   top:0;
   }
+/* LOGO EXTaze - PAGE CONNEXION */
+
+.auth-logo-image{
+  display:block;
+  width:190px;
+  max-width:65vw;
+  height:auto;
+  object-fit:contain;
+  margin:0 auto 14px;
+  }
