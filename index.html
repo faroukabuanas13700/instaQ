@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000">
   <title>InstaQ</title>
 
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
 </head>
 
 <body>
@@ -138,8 +138,11 @@
     </header>
 
 
-    <!-- RECHERCHE -->
-    <section class="user-search-section">
+    <!-- RECHERCHE PROFIL -->
+    <section
+      id="profileSearchSection"
+      class="user-search-section"
+    >
 
       <div class="user-search-wrap">
 
@@ -170,7 +173,10 @@
 
 
     <!-- PROFIL -->
-    <main class="profile-page">
+    <main
+      id="profilePage"
+      class="profile-page"
+    >
 
       <!-- BANNIÈRE -->
       <section class="cover">
@@ -262,47 +268,46 @@
           <!-- STATISTIQUES -->
           <section class="stats">
 
-  <div>
-    <strong id="postCount">
-      0
-    </strong>
+            <div>
+              <strong id="postCount">
+                0
+              </strong>
 
-    <span>
-      publications
-    </span>
-  </div>
+              <span>
+                publications
+              </span>
+            </div>
 
-  <button
-    class="stat-btn"
-    id="followersBtn"
-    type="button"
-  >
-    <strong id="followers">
-      0
-    </strong>
+            <button
+              class="stat-btn"
+              id="followersBtn"
+              type="button"
+            >
+              <strong id="followers">
+                0
+              </strong>
 
-    <span>
-      abonnés
-    </span>
-  </button>
+              <span>
+                abonnés
+              </span>
+            </button>
 
-  <button
-    class="stat-btn"
-    id="followingBtn"
-    type="button"
-  >
-    <strong id="following">
-      0
-    </strong>
+            <button
+              class="stat-btn"
+              id="followingBtn"
+              type="button"
+            >
+              <strong id="following">
+                0
+              </strong>
 
-    <span>
-      abonnements
-    </span>
-  </button>
+              <span>
+                abonnements
+              </span>
+            </button>
 
-</section>
+          </section>
 
-            
         </div>
 
 
@@ -338,32 +343,32 @@
         <!-- BOUTONS -->
         <div class="profile-actions">
 
-  <button
-    class="primary-btn"
-    id="editProfileBtn"
-    type="button"
-  >
-    Modifier le profil
-  </button>
+          <button
+            class="primary-btn"
+            id="editProfileBtn"
+            type="button"
+          >
+            Modifier le profil
+          </button>
 
-  <button
-    class="follow-btn"
-    id="followBtn"
-    type="button"
-    hidden
-  >
-    S’abonner
-  </button>
+          <button
+            class="follow-btn"
+            id="followBtn"
+            type="button"
+            hidden
+          >
+            S’abonner
+          </button>
 
-  <button
-    class="secondary-btn"
-    id="shareBtn"
-    type="button"
-  >
-    Partager le profil
-  </button>
+          <button
+            class="secondary-btn"
+            id="shareBtn"
+            type="button"
+          >
+            Partager le profil
+          </button>
 
-</div>
+        </div>
 
       </section>
 
@@ -432,6 +437,53 @@
     </main>
 
 
+    <!-- PAGE EXPLORER -->
+    <section
+      id="explorePage"
+      class="explore-page"
+      hidden
+    >
+
+      <div class="explore-search-wrap">
+
+        <div class="explore-search">
+
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M16.5 16.5L21 21"></path>
+          </svg>
+
+          <input
+            id="exploreSearchInput"
+            type="search"
+            placeholder="Rechercher"
+            autocomplete="off"
+          >
+
+        </div>
+
+      </div>
+
+      <div
+        id="exploreSearchResults"
+        class="explore-search-results"
+      ></div>
+
+      <section
+        id="exploreGrid"
+        class="explore-grid"
+      ></section>
+
+      <div
+        id="exploreEmpty"
+        class="explore-empty"
+      >
+        Aucune publication disponible.
+      </div>
+
+    </section>
+
+
     <!-- BOUTON THÈME -->
     <button
       class="theme-btn"
@@ -496,31 +548,34 @@
 
     </nav>
 
-<!-- LISTE ABONNÉS / ABONNEMENTS -->
-<dialog
-  class="dialog follow-list-dialog"
-  id="followListDialog"
->
-  <div class="follow-list-head">
-    <h2 id="followListTitle">
-      Abonnés
-    </h2>
 
-    <button
-      type="button"
-      class="close"
-      id="followListClose"
-      aria-label="Fermer"
+    <!-- LISTE ABONNÉS / ABONNEMENTS -->
+    <dialog
+      class="dialog follow-list-dialog"
+      id="followListDialog"
     >
-      ×
-    </button>
-  </div>
+      <div class="follow-list-head">
+        <h2 id="followListTitle">
+          Abonnés
+        </h2>
 
-  <div
-    id="followListContent"
-    class="follow-list-content"
-  ></div>
-</dialog>
+        <button
+          type="button"
+          class="close"
+          id="followListClose"
+          aria-label="Fermer"
+        >
+          ×
+        </button>
+      </div>
+
+      <div
+        id="followListContent"
+        class="follow-list-content"
+      ></div>
+    </dialog>
+
+
     <!-- MODIFICATION PROFIL -->
     <dialog
       class="dialog"
@@ -698,7 +753,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="./script.js?v=12"></script>
+  <script src="./script.js?v=13"></script>
 
 </body>
 </html>
