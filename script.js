@@ -5,19 +5,15 @@ const $$ = s => [...document.querySelectorAll(s)];
 SUPABASE
 ========================================================= */
 
-const SUPABASE_URL =
-"https://sozzpklmlhtvwxbuecax.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY =
-"sb_publishable_Xo20VSelYyO9tLTgT0SVbQ_4ZvkwH4B";
+const SUPABASE_URL = "https://sozzpklmlhtvwxbuecax.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Xo20VSelYyO9tLTgT0SVbQ_4ZvkwH4B";
 
 let supabaseClient = null;
+let currentUser = null;
+let authEventsConfigured = false;
 
 try {
-  if (
-    window.supabase &&
-    typeof window.supabase.createClient === "function"
-  ) {
+  if (window.supabase && typeof window.supabase.createClient === "function") {
     supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY
@@ -33,7 +29,6 @@ OUTILS
 
 function toast(text) {
   const el = $("#toast");
-
   if (!el) return;
 
   el.textContent = text;
@@ -56,20 +51,30 @@ function supabaseReady() {
   return true;
 }
 
+function clearAuthErrors() {
+  if ($("#loginError")) {
+    $("#loginError").textContent = "";
+  }
+
+  if ($("#signupError")) {
+    $("#signupError").textContent = "";
+  }
+}
+
 /* =========================================================
-AUTHENTIFICATION — AFFICHAGE
+AFFICHAGE CONNEXION / PROFIL
 ========================================================= */
 
 function showAuthScreen() {
   const auth = $("#authScreen");
   const app = $("#app");
 
-  if (auth) {
-    auth.style.display = "flex";
+  if (app) {
+    app.hidden = true;
   }
 
-  if (app) {
-    app.style.display = "none";
+  if (auth) {
+    auth.hidden = false;
   }
 }
 
@@ -78,132 +83,16 @@ function showApp() {
   const app = $("#app");
 
   if (auth) {
-    auth.style.display = "none";
+    auth.hidden = true;
   }
 
   if (app) {
-    app.style.display = "block";
+    app.hidden = false;
   }
 }
 
 /* =========================================================
-STYLES AUTH
-========================================================= */
-
-function addAuthStyles() {
-  if ($("#instaqAuthStyles")) return;
-
-  const style = document.createElement("style");
-
-  style.id = "instaqAuthStyles";
-
-  style.textContent = `
-    .auth-screen{
-      position:fixed;
-      inset:0;
-      z-index:99999;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:#000;
-      padding:20px;
-      box-sizing:border-box;
-    }
-
-    .auth-box{
-      width:min(350px,100%);
-      text-align:center;
-    }
-
-    .auth-logo{
-      color:#fff;
-      font-size:38px;
-      font-weight:700;
-      margin-bottom:8px;
-    }
-
-    .auth-subtitle{
-      color:#aaa;
-      margin:0 0 25px;
-      font-size:14px;
-    }
-
-    .auth-form{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    .auth-form input{
-      width:100%;
-      box-sizing:border-box;
-      padding:13px;
-      border:1px solid #333;
-      border-radius:6px;
-      background:#111;
-      color:#fff;
-      outline:none;
-      font-size:14px;
-    }
-
-    .auth-form input:focus{
-      border-color:#666;
-    }
-
-    .auth-form button{
-      border:0;
-      border-radius:6px;
-      padding:12px;
-      font-weight:600;
-      cursor:pointer;
-      font-size:14px;
-    }
-
-    .auth-primary{
-      background:#0095f6;
-      color:#fff;
-    }
-
-    .auth-secondary{
-      background:#222;
-      color:#fff;
-    }
-
-    .auth-form button:disabled{
-      opacity:.6;
-      cursor:wait;
-    }
-
-    .auth-separator{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      color:#777;
-      font-size:12px;
-      margin:18px 0;
-    }
-
-    .auth-separator:before,
-    .auth-separator:after{
-      content:"";
-      height:1px;
-      background:#333;
-      flex:1;
-    }
-
-    .auth-error{
-      color:#ff5c67;
-      font-size:12px;
-      min-height:18px;
-      margin-top:2px;
-    }
-  `;
-
-  document.head.appendChild(style);
-}
-
-/* =========================================================
-PROFIL PAR DEFAUT
+ETAT UTILISATEUR
 ========================================================= */
 
 const defaults = {
@@ -215,21 +104,27 @@ const defaults = {
   following: 0
 };
 
-/* =========================================================
-ETAT LOCAL
-========================================================= */
+let state = {
+  profile: { ...defaults },
+  posts: [],
+  filter: "all",
+  liked: {},
+  dark: true,
+  customMedia: {
+    avatar: "",
+    cover: ""
+  }
+};
 
-let state;
+function getStateKey() {
+  if (!currentUser) {
+    return null;
+  }
 
-try {
-  state = JSON.parse(
-    localStorage.getItem("igGitHubState") || "null"
-  );
-} catch {
-  state = null;
+  return "instaqState:" + currentUser.id;
 }
 
-if (!state) {
+function loadLocalStateForUser() {
   state = {
     profile: { ...defaults },
     posts: [],
@@ -241,64 +136,89 @@ if (!state) {
       cover: ""
     }
   };
-}
 
-state.profile = {
-  ...defaults,
-  ...(state.profile || {})
-};
+  const key = getStateKey();
 
-state.posts = Array.isArray(state.posts)
-  ? state.posts
-  : [];
+  if (!key) {
+    return;
+  }
 
-state.liked = state.liked || {};
+  try {
+    const saved = JSON.parse(
+      localStorage.getItem(key) || "null"
+    );
 
-state.customMedia =
-  state.customMedia || {};
+    if (saved) {
+      state.profile = {
+        ...defaults,
+        ...(saved.profile || {})
+      };
 
-state.customMedia.avatar =
-  state.customMedia.avatar || "";
+      state.posts =
+        Array.isArray(saved.posts)
+          ? saved.posts
+          : [];
 
-state.customMedia.cover =
-  state.customMedia.cover || "";
+      state.filter =
+        saved.filter || "all";
 
-if (typeof state.dark !== "boolean") {
-  state.dark = true;
-}
+      state.liked =
+        saved.liked || {};
 
-if (!state.filter) {
-  state.filter = "all";
+      state.dark =
+        typeof saved.dark === "boolean"
+          ? saved.dark
+          : true;
+
+      state.customMedia = {
+        avatar:
+          saved.customMedia?.avatar || "",
+        cover:
+          saved.customMedia?.cover || ""
+      };
+    }
+  } catch (error) {
+    console.error(
+      "Erreur lecture état local :",
+      error
+    );
+  }
 }
 
 function save() {
+  const key = getStateKey();
+
+  if (!key) {
+    return;
+  }
+
   try {
     localStorage.setItem(
-      "igGitHubState",
+      key,
       JSON.stringify(state)
     );
   } catch (error) {
-    console.error("Erreur sauvegarde :", error);
+    console.error(
+      "Erreur sauvegarde locale :",
+      error
+    );
   }
 }
 
 /* =========================================================
-CONNEXION
+AUTHENTIFICATION
 ========================================================= */
 
-let authEventsConfigured = false;
-
 async function loginUser(email, password) {
-
-  if (!supabaseReady()) return;
+  if (!supabaseReady()) {
+    return;
+  }
 
   const errorBox = $("#loginError");
   const button =
     $("#loginForm button[type='submit']");
 
-  if (errorBox) {
-    errorBox.textContent = "";
-  }
+  clearAuthErrors();
 
   if (button) {
     button.disabled = true;
@@ -306,67 +226,37 @@ async function loginUser(email, password) {
   }
 
   try {
-
-    console.log("Tentative de connexion...");
-
-    const result =
+    const { data, error } =
       await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
+        email,
+        password
       });
 
-    console.log("Réponse Supabase :", result);
+    if (error) {
+      throw error;
+    }
 
-    if (result.error) {
-
-      console.error(
-        "Erreur connexion Supabase :",
-        result.error
+    if (!data?.session?.user) {
+      throw new Error(
+        "Aucune session n'a été créée."
       );
-
-      if (errorBox) {
-        errorBox.textContent =
-          result.error.message ||
-          "Identifiants incorrects.";
-      }
-
-      if (button) {
-        button.disabled = false;
-        button.textContent = "Se connecter";
-      }
-
-      return;
     }
 
-    const session =
-      result.data?.session;
+    currentUser =
+      data.session.user;
 
-    if (!session) {
+    loadLocalStateForUser();
 
-      if (errorBox) {
-        errorBox.textContent =
-          "Connexion réussie mais aucune session n'a été créée.";
-      }
+    applyTheme();
 
-      return;
-    }
+    await loadUserProfile();
+    await loadSupabasePosts();
 
-    console.log(
-      "Connexion réussie :",
-      session.user.email
-    );
-
-    /* IMPORTANT :
-       on affiche immédiatement l'application */
     showApp();
-await loadUserProfile();
+
     toast("Connexion réussie");
 
-    /* Chargement des publications sans bloquer l'accès */
-    loadSupabasePosts();
-
   } catch (error) {
-
     console.error(
       "Erreur connexion :",
       error
@@ -378,79 +268,62 @@ await loadUserProfile();
         "Impossible de se connecter.";
     }
 
-  } finally {
+    showAuthScreen();
 
+  } finally {
     if (button) {
       button.disabled = false;
-      button.textContent = "Se connecter";
+      button.textContent =
+        "Se connecter";
     }
-
   }
 }
 
-/* =========================================================
-INSCRIPTION
-========================================================= */
-
 async function signupUser(email, password) {
-
-  if (!supabaseReady()) return;
+  if (!supabaseReady()) {
+    return;
+  }
 
   const errorBox = $("#signupError");
   const button =
     $("#signupForm button[type='submit']");
 
-  if (errorBox) {
-    errorBox.textContent = "";
-  }
+  clearAuthErrors();
 
   if (button) {
     button.disabled = true;
-    button.textContent = "Création...";
+    button.textContent =
+      "Création...";
   }
 
   try {
-
-    const result =
+    const { data, error } =
       await supabaseClient.auth.signUp({
-        email: email,
-        password: password
+        email,
+        password
       });
 
-    console.log("Réponse inscription :", result);
-
-    if (result.error) {
-
-      console.error(
-        "Erreur inscription :",
-        result.error
-      );
-
-      if (errorBox) {
-        errorBox.textContent =
-          result.error.message;
-      }
-
-      return;
+    if (error) {
+      throw error;
     }
 
-    if (result.data?.session) {
+    if (data?.session?.user) {
+      currentUser =
+        data.session.user;
 
-  await loadUserProfile();
+      loadLocalStateForUser();
 
-  showApp();
+      applyTheme();
 
-  toast("Compte créé");
+      await loadUserProfile();
+      await loadSupabasePosts();
 
-  await loadSupabasePosts();
+      showApp();
 
-}
+      toast("Compte créé");
 
     } else {
-
-      if (errorBox) {
-        errorBox.textContent = "";
-      }
+      showAuthScreen();
 
       toast(
         "Compte créé. Connectez-vous maintenant."
@@ -458,7 +331,6 @@ async function signupUser(email, password) {
     }
 
   } catch (error) {
-
     console.error(
       "Erreur inscription :",
       error
@@ -471,39 +343,91 @@ async function signupUser(email, password) {
     }
 
   } finally {
-
     if (button) {
       button.disabled = false;
-      button.textContent = "Créer un compte";
+      button.textContent =
+        "Créer un compte";
     }
-
   }
 }
 
-/* =========================================================
-CONFIGURATION AUTH
-========================================================= */
+async function logoutUser() {
+  if (!supabaseReady()) {
+    return;
+  }
+
+  try {
+    const { error } =
+      await supabaseClient.auth.signOut();
+
+    if (error) {
+      throw error;
+    }
+
+    currentUser = null;
+
+    state = {
+      profile: { ...defaults },
+      posts: [],
+      filter: "all",
+      liked: {},
+      dark: true,
+      customMedia: {
+        avatar: "",
+        cover: ""
+      }
+    };
+
+    renderProfile();
+    renderGrid();
+
+    clearMedia(
+      $("#avatarImg"),
+      $("#avatarVideo")
+    );
+
+    clearMedia(
+      $("#coverImg"),
+      $("#coverVideo")
+    );
+
+    clearAuthErrors();
+
+    showAuthScreen();
+
+    toast("Déconnecté");
+
+  } catch (error) {
+    console.error(
+      "Erreur déconnexion :",
+      error
+    );
+
+    toast(
+      error?.message ||
+      "Impossible de se déconnecter"
+    );
+  }
+}
 
 function setupAuth() {
-
-  addAuthStyles();
-
   const loginForm =
     $("#loginForm");
 
   const signupForm =
     $("#signupForm");
 
-  if (loginForm &&
-      !loginForm.dataset.configured) {
-
-    loginForm.dataset.configured = "true";
+  if (
+    loginForm &&
+    !loginForm.dataset.configured
+  ) {
+    loginForm.dataset.configured =
+      "true";
 
     loginForm.addEventListener(
       "submit",
-      async e => {
-
-        e.preventDefault();
+      async event => {
+        event.preventDefault();
 
         const email =
           $("#loginEmail")?.value.trim();
@@ -512,9 +436,10 @@ function setupAuth() {
           $("#loginPassword")?.value;
 
         if (!email || !password) {
-
-          $("#loginError").textContent =
-            "Veuillez remplir les deux champs.";
+          if ($("#loginError")) {
+            $("#loginError").textContent =
+              "Veuillez remplir les deux champs.";
+          }
 
           return;
         }
@@ -527,16 +452,17 @@ function setupAuth() {
     );
   }
 
-  if (signupForm &&
-      !signupForm.dataset.configured) {
-
-    signupForm.dataset.configured = "true";
+  if (
+    signupForm &&
+    !signupForm.dataset.configured
+  ) {
+    signupForm.dataset.configured =
+      "true";
 
     signupForm.addEventListener(
       "submit",
-      async e => {
-
-        e.preventDefault();
+      async event => {
+        event.preventDefault();
 
         const email =
           $("#signupEmail")?.value.trim();
@@ -545,9 +471,10 @@ function setupAuth() {
           $("#signupPassword")?.value;
 
         if (!email || !password) {
-
-          $("#signupError").textContent =
-            "Veuillez remplir les deux champs.";
+          if ($("#signupError")) {
+            $("#signupError").textContent =
+              "Veuillez remplir les deux champs.";
+          }
 
           return;
         }
@@ -560,28 +487,31 @@ function setupAuth() {
     );
   }
 
+  $("#logoutBtn")?.addEventListener(
+    "click",
+    logoutUser
+  );
+
   if (
     supabaseClient &&
     !authEventsConfigured
   ) {
-
     authEventsConfigured = true;
 
     supabaseClient.auth.onAuthStateChange(
-      (_event, session) => {
-
+      (event, session) => {
         console.log(
           "Auth event :",
-          _event,
-          session ? "SESSION" : "NO SESSION"
+          event
         );
 
-        if (session?.user) {
-          showApp();
-        } else {
+        if (
+          event === "SIGNED_OUT" ||
+          !session?.user
+        ) {
+          currentUser = null;
           showAuthScreen();
         }
-
       }
     );
   }
@@ -590,54 +520,51 @@ function setupAuth() {
 /* =========================================================
 PROFIL
 ========================================================= */
+
 async function loadUserProfile() {
-  if (!supabaseReady()) return;
+  if (
+    !supabaseReady() ||
+    !currentUser
+  ) {
+    return;
+  }
 
   try {
-    const {
-      data: { user },
-      error: userError
-    } = await supabaseClient.auth.getUser();
+    const { data: profile, error } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,email,username,name,bio,link,avatar_url,cover_url"
+        )
+        .eq(
+          "id",
+          currentUser.id
+        )
+        .single();
 
-    if (userError || !user) return;
-
-    const result = await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    if (result.error) {
-      console.error(
-        "Erreur chargement profil :",
-        result.error
-      );
-      return;
+    if (error) {
+      throw error;
     }
-
-    const profile = result.data;
 
     state.profile.name =
-      profile.name || defaults.name;
+      profile?.name ||
+      profile?.username ||
+      "";
 
     state.profile.username =
-      profile.username || defaults.username;
+      profile?.username || "";
 
     state.profile.bio =
-      profile.bio || "";
+      profile?.bio || "";
 
     state.profile.link =
-      profile.link || "";
+      profile?.link || "";
 
-    if (profile.avatar_url) {
-      state.customMedia.avatar =
-        profile.avatar_url;
-    }
+    state.customMedia.avatar =
+      profile?.avatar_url || "";
 
-    if (profile.cover_url) {
-      state.customMedia.cover =
-        profile.cover_url;
-    }
+    state.customMedia.cover =
+      profile?.cover_url || "";
 
     save();
 
@@ -646,72 +573,589 @@ async function loadUserProfile() {
 
   } catch (error) {
     console.error(
-      "Erreur loadUserProfile :",
+      "Erreur chargement profil :",
       error
     );
   }
 }
+
 function renderProfile() {
-
-  if ($("#displayName"))
+  if ($("#displayName")) {
     $("#displayName").textContent =
-      state.profile.name;
+      state.profile.name || "";
+  }
 
-  if ($("#username"))
+  if ($("#username")) {
     $("#username").textContent =
-      state.profile.username;
+      state.profile.username || "";
+  }
 
-  if ($("#bioText"))
+  if ($("#bioText")) {
     $("#bioText").textContent =
-      state.profile.bio;
+      state.profile.bio || "";
+  }
 
-  if ($("#followers"))
+  if ($("#followers")) {
     $("#followers").textContent =
-      state.profile.followers;
+      state.profile.followers || 0;
+  }
 
-  if ($("#following"))
+  if ($("#following")) {
     $("#following").textContent =
-      state.profile.following;
+      state.profile.following || 0;
+  }
 
-  if ($("#bioLink")) {
+  const bioLink =
+    $("#bioLink");
 
+  if (bioLink) {
     const link =
       state.profile.link || "";
 
-    $("#bioLink").textContent =
-      link.replace(/^https?:\/\//, "");
+    bioLink.textContent =
+      link.replace(
+        /^https?:\/\//,
+        ""
+      );
 
-    $("#bioLink").href =
+    bioLink.href =
       link || "#";
 
-    $("#bioLink").style.display =
+    bioLink.style.display =
       link ? "inline" : "none";
   }
 
   document.title =
-    (state.profile.username ||
-      defaults.username) +
-    " — InstaQ";
+    state.profile.username
+      ? state.profile.username +
+        " — InstaQ"
+      : "InstaQ";
 }
 
+$("#editProfileBtn")?.addEventListener(
+  "click",
+  () => {
+    if ($("#nameInput")) {
+      $("#nameInput").value =
+        state.profile.name || "";
+    }
+
+    if ($("#usernameInput")) {
+      $("#usernameInput").value =
+        state.profile.username || "";
+    }
+
+    if ($("#bioInput")) {
+      $("#bioInput").value =
+        state.profile.bio || "";
+    }
+
+    if ($("#linkInput")) {
+      $("#linkInput").value =
+        state.profile.link || "";
+    }
+
+    const dialog =
+      $("#profileDialog");
+
+    if (
+      dialog &&
+      typeof dialog.showModal ===
+        "function"
+    ) {
+      dialog.showModal();
+    }
+  }
+);
+
+$("#profileDialogClose")?.addEventListener(
+  "click",
+  () => {
+    $("#profileDialog")?.close();
+  }
+);
+
+$("#profileCancelBtn")?.addEventListener(
+  "click",
+  () => {
+    $("#profileDialog")?.close();
+  }
+);
+
+$("#profileForm")?.addEventListener(
+  "submit",
+  async event => {
+    event.preventDefault();
+
+    if (
+      !supabaseReady() ||
+      !currentUser
+    ) {
+      return;
+    }
+
+    const name =
+      $("#nameInput")?.value.trim() ||
+      "";
+
+    const username =
+      $("#usernameInput")?.value.trim() ||
+      "";
+
+    const bio =
+      $("#bioInput")?.value.trim() ||
+      "";
+
+    const link =
+      $("#linkInput")?.value.trim() ||
+      "";
+
+    try {
+      const { error } =
+        await supabaseClient
+          .from("profiles")
+          .update({
+            name,
+            username,
+            bio,
+            link
+          })
+          .eq(
+            "id",
+            currentUser.id
+          );
+
+      if (error) {
+        throw error;
+      }
+
+      state.profile = {
+        ...state.profile,
+        name,
+        username,
+        bio,
+        link
+      };
+
+      save();
+      renderProfile();
+
+      $("#profileDialog")?.close();
+
+      toast(
+        "Profil enregistré"
+      );
+
+    } catch (error) {
+      console.error(
+        "Erreur modification profil :",
+        error
+      );
+
+      toast(
+        error?.message ||
+        "Impossible d'enregistrer le profil"
+      );
+    }
+  }
+);
+
 /* =========================================================
-MEDIA
+MEDIA PROFIL / BANNIERE
+========================================================= */
+
+function clearMedia(
+  img,
+  video
+) {
+  const placeholder =
+    img
+      ?.closest(".avatar-wrap")
+      ?.querySelector(
+        ".avatar-placeholder"
+      );
+
+  if (placeholder) {
+    placeholder.style.display =
+      "block";
+  }
+
+  if (img) {
+    img.removeAttribute("src");
+    img.style.display = "none";
+  }
+
+  if (video) {
+    try {
+      video.pause();
+    } catch {}
+
+    video.removeAttribute("src");
+    video.style.display = "none";
+  }
+}
+
+function displayMedia(
+  img,
+  video,
+  url,
+  mime = ""
+) {
+  const placeholder =
+    img
+      ?.closest(".avatar-wrap")
+      ?.querySelector(
+        ".avatar-placeholder"
+      );
+
+  if (!url) {
+    clearMedia(
+      img,
+      video
+    );
+
+    return;
+  }
+
+  const isVideo =
+    mime.startsWith("video/") ||
+    /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(
+      url
+    );
+
+  if (placeholder) {
+    placeholder.style.display =
+      "none";
+  }
+
+  if (isVideo) {
+    if (img) {
+      img.style.display =
+        "none";
+
+      img.removeAttribute(
+        "src"
+      );
+    }
+
+    if (video) {
+      video.src = url;
+      video.style.display =
+        "block";
+
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+
+      video
+        .play()
+        .catch(() => {});
+    }
+
+  } else {
+    if (video) {
+      try {
+        video.pause();
+      } catch {}
+
+      video.removeAttribute(
+        "src"
+      );
+
+      video.style.display =
+        "none";
+    }
+
+    if (img) {
+      img.src = url;
+      img.style.display =
+        "block";
+    }
+  }
+}
+
+function restoreMedia() {
+  displayMedia(
+    $("#avatarImg"),
+    $("#avatarVideo"),
+    state.customMedia.avatar ||
+      ""
+  );
+
+  displayMedia(
+    $("#coverImg"),
+    $("#coverVideo"),
+    state.customMedia.cover ||
+      ""
+  );
+}
+
+async function setMedia(
+  input,
+  img,
+  video,
+  folder,
+  fieldName
+) {
+  const file =
+    input?.files?.[0];
+
+  if (
+    !file ||
+    !supabaseReady() ||
+    !currentUser
+  ) {
+    return;
+  }
+
+  const progress =
+    $("#uploadProgress");
+
+  const progressText =
+    $("#uploadProgressText");
+
+  const progressFill =
+    $("#uploadProgressFill");
+
+  if (progress) {
+    progress.classList.add(
+      "show"
+    );
+  }
+
+  try {
+    if (progressText) {
+      progressText.textContent =
+        "Envoi… 10%";
+    }
+
+    if (progressFill) {
+      progressFill.style.width =
+        "10%";
+    }
+
+    const extension =
+      (
+        file.name
+          .split(".")
+          .pop() ||
+        "bin"
+      ).toLowerCase();
+
+    const filename =
+      currentUser.id +
+      "_" +
+      Date.now() +
+      "_" +
+      Math.random()
+        .toString(36)
+        .slice(2) +
+      "." +
+      extension;
+
+    const path =
+      folder +
+      "/" +
+      filename;
+
+    if (progressText) {
+      progressText.textContent =
+        "Envoi… 35%";
+    }
+
+    if (progressFill) {
+      progressFill.style.width =
+        "35%";
+    }
+
+    const { error: uploadError } =
+      await supabaseClient.storage
+        .from("media")
+        .upload(
+          path,
+          file,
+          {
+            cacheControl: "3600",
+            upsert: false
+          }
+        );
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: publicData } =
+      supabaseClient.storage
+        .from("media")
+        .getPublicUrl(path);
+
+    const publicUrl =
+      publicData?.publicUrl;
+
+    if (!publicUrl) {
+      throw new Error(
+        "URL publique introuvable."
+      );
+    }
+
+    if (progressText) {
+      progressText.textContent =
+        "Envoi… 75%";
+    }
+
+    if (progressFill) {
+      progressFill.style.width =
+        "75%";
+    }
+
+    const updatePayload =
+      fieldName === "avatar_url"
+        ? {
+            avatar_url:
+              publicUrl
+          }
+        : {
+            cover_url:
+              publicUrl
+          };
+
+    const { error: profileError } =
+      await supabaseClient
+        .from("profiles")
+        .update(
+          updatePayload
+        )
+        .eq(
+          "id",
+          currentUser.id
+        );
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    if (
+      fieldName ===
+      "avatar_url"
+    ) {
+      state.customMedia.avatar =
+        publicUrl;
+    }
+
+    if (
+      fieldName ===
+      "cover_url"
+    ) {
+      state.customMedia.cover =
+        publicUrl;
+    }
+
+    save();
+
+    displayMedia(
+      img,
+      video,
+      publicUrl,
+      file.type
+    );
+
+    if (progressText) {
+      progressText.textContent =
+        "Envoi… 100%";
+    }
+
+    if (progressFill) {
+      progressFill.style.width =
+        "100%";
+    }
+
+    toast(
+      fieldName === "avatar_url"
+        ? "Photo de profil modifiée"
+        : "Bannière modifiée"
+    );
+
+  } catch (error) {
+    console.error(
+      "Erreur upload média :",
+      error
+    );
+
+    toast(
+      error?.message ||
+      "Erreur pendant l'envoi"
+    );
+
+  } finally {
+    if (input) {
+      input.value = "";
+    }
+
+    setTimeout(() => {
+      if (progress) {
+        progress.classList.remove(
+          "show"
+        );
+      }
+
+      if (progressFill) {
+        progressFill.style.width =
+          "0%";
+      }
+    }, 600);
+  }
+}
+
+$("#avatarInput")?.addEventListener(
+  "change",
+  () => {
+    setMedia(
+      $("#avatarInput"),
+      $("#avatarImg"),
+      $("#avatarVideo"),
+      "profiles",
+      "avatar_url"
+    );
+  }
+);
+
+$("#coverInput")?.addEventListener(
+  "change",
+  () => {
+    setMedia(
+      $("#coverInput"),
+      $("#coverImg"),
+      $("#coverVideo"),
+      "covers",
+      "cover_url"
+    );
+  }
+);
+
+/* =========================================================
+PUBLICATIONS
 ========================================================= */
 
 function mediaElement(
   post,
   forViewer = false
 ) {
-
-  if (post.type === "video") {
-
+  if (
+    post.type ===
+    "video"
+  ) {
     const video =
-      document.createElement("video");
+      document.createElement(
+        "video"
+      );
 
-    video.src = post.src;
+    video.src =
+      post.src;
+
     video.loop = true;
     video.playsInline = true;
-    video.preload = "metadata";
+    video.preload =
+      "metadata";
 
     if (forViewer) {
       video.controls = true;
@@ -725,579 +1169,164 @@ function mediaElement(
   }
 
   const img =
-    document.createElement("img");
+    document.createElement(
+      "img"
+    );
 
-  img.src = post.src;
+  img.src =
+    post.src;
 
   img.alt =
     post.caption ||
     "Publication";
 
-  img.loading = "lazy";
+  img.loading =
+    "lazy";
 
   return img;
 }
 
-/* =========================================================
-GRILLE
-========================================================= */
-
 function renderGrid() {
-
   const grid =
     $("#postGrid");
 
-  if (!grid) return;
+  if (!grid) {
+    return;
+  }
 
   grid.innerHTML = "";
 
   const posts =
-    state.posts.filter(post =>
-      state.filter === "all" ||
-      post.type === state.filter
+    state.posts.filter(
+      post =>
+        state.filter ===
+          "all" ||
+        post.type ===
+          state.filter
     );
 
-  if ($("#postCount"))
+  if ($("#postCount")) {
     $("#postCount").textContent =
       state.posts.length;
+  }
 
-  if ($("#emptyState"))
+  if ($("#emptyState")) {
     $("#emptyState").style.display =
-      posts.length ? "none" : "block";
+      posts.length
+        ? "none"
+        : "block";
+  }
 
-  posts.forEach(post => {
+  posts.forEach(
+    post => {
+      const card =
+        document.createElement(
+          "article"
+        );
 
-    const card =
-      document.createElement("article");
+      card.className =
+        "post";
 
-    card.className = "post";
+      card.dataset.id =
+        post.id;
 
-    card.dataset.id =
-      post.id;
+      card.appendChild(
+        mediaElement(post)
+      );
 
-    card.appendChild(
-      mediaElement(post)
-    );
-
-    if (post.type === "video") {
-
-      const icon =
-        document.createElement("span");
-
-      icon.className =
-        "video-icon";
-
-      icon.textContent = "▶";
-
-      card.appendChild(icon);
-    }
-
-    const likeBadge =
-      document.createElement("span");
-
-    likeBadge.className =
-      "like-badge";
-
-    likeBadge.textContent =
-      "♥ " + (post.likes || 0);
-
-    card.appendChild(
-      likeBadge
-    );
-
-    let lastTap = 0;
-
-    card.addEventListener(
-      "click",
-      () => {
-
-        const now =
-          Date.now();
-
-        if (
-          now - lastTap <
-          350
-        ) {
-
-          like(
-            post.id,
-            true
+      if (
+        post.type ===
+        "video"
+      ) {
+        const icon =
+          document.createElement(
+            "span"
           );
 
-          lastTap = 0;
+        icon.className =
+          "video-icon";
 
-          return;
-        }
+        icon.textContent =
+          "▶";
 
-        lastTap = now;
+        card.appendChild(
+          icon
+        );
+      }
 
-        setTimeout(() => {
+      const likeBadge =
+        document.createElement(
+          "span"
+        );
+
+      likeBadge.className =
+        "like-badge";
+
+      likeBadge.textContent =
+        "♥ " +
+        (post.likes || 0);
+
+      card.appendChild(
+        likeBadge
+      );
+
+      let lastTap = 0;
+
+      card.addEventListener(
+        "click",
+        () => {
+          const now =
+            Date.now();
 
           if (
-            Date.now() -
-            lastTap >= 300
+            now - lastTap <
+            350
           ) {
-
-            openViewer(
-              post.id
+            like(
+              post.id,
+              true
             );
+
+            lastTap = 0;
+
+            return;
           }
 
-        }, 320);
+          lastTap = now;
 
-      }
-    );
-
-    grid.appendChild(card);
-
-  });
-}
-
-/* =========================================================
-LIKE
-========================================================= */
-
-function like(
-  id,
-  showAnimation = false
-) {
-
-  const post =
-    state.posts.find(
-      p => p.id == id
-    );
-
-  if (!post) return;
-
-  if (!state.liked[id]) {
-
-    post.likes =
-      (post.likes || 0) + 1;
-
-    state.liked[id] = true;
-
-  } else {
-
-    post.likes =
-      Math.max(
-        0,
-        (post.likes || 0) - 1
+          setTimeout(
+            () => {
+              if (
+                Date.now() -
+                  lastTap >=
+                300
+              ) {
+                openViewer(
+                  post.id
+                );
+              }
+            },
+            320
+          );
+        }
       );
 
-    state.liked[id] = false;
-  }
+      grid.appendChild(
+        card
+      );
+    }
+  );
+}
 
-  save();
-
-  renderGrid();
-
+async function uploadPost(
+  file
+) {
   if (
-    showAnimation &&
-    state.liked[id]
+    !supabaseReady() ||
+    !currentUser
   ) {
-
-    const target =
-      [...(
-        $("#postGrid")?.children ||
-        []
-      )].find(
-        x => x.dataset.id == id
-      );
-
-    if (target) {
-
-      const heart =
-        document.createElement("div");
-
-      heart.className =
-        "heart-pop";
-
-      heart.textContent = "♥";
-
-      target.appendChild(
-        heart
-      );
-
-      setTimeout(
-        () => heart.remove(),
-        750
-      );
-    }
+    return;
   }
-}
-
-/* =========================================================
-VISUALISEUR
-========================================================= */
-
-let viewerIndex = 0;
-
-function getFilteredPosts() {
-
-  return state.posts.filter(post =>
-    state.filter === "all" ||
-    post.type === state.filter
-  );
-}
-
-function openViewer(id) {
-
-  const posts =
-    getFilteredPosts();
-
-  const index =
-    posts.findIndex(
-      post => post.id == id
-    );
-
-  if (index < 0) return;
-
-  viewerIndex =
-    index;
-
-  showViewerPost();
-
-  const viewer =
-    $("#viewer");
-
-  if (!viewer) return;
-
-  viewer.classList.add("open");
-
-  viewer.setAttribute(
-    "aria-hidden",
-    "false"
-  );
-
-  document.body.style.overflow =
-    "hidden";
-}
-
-function showViewerPost() {
-
-  const posts =
-    getFilteredPosts();
-
-  const post =
-    posts[viewerIndex];
-
-  if (!post) return;
-
-  const content =
-    $("#viewerContent");
-
-  if (!content) return;
-
-  content.innerHTML = "";
-
-  const element =
-    mediaElement(
-      post,
-      true
-    );
-
-  content.appendChild(
-    element
-  );
-
-  if (post.type === "video") {
-
-    element.autoplay = true;
-    element.controls = true;
-
-    element.addEventListener(
-      "canplay",
-      () => {
-        element
-          .play()
-          .catch(() => {});
-      },
-      { once: true }
-    );
-  }
-
-  if ($("#viewerCaption"))
-    $("#viewerCaption").textContent =
-      post.caption || "";
-}
-
-function closeViewer() {
-
-  const viewer =
-    $("#viewer");
-
-  if (!viewer) return;
-
-  viewer.classList.remove(
-    "open"
-  );
-
-  viewer.setAttribute(
-    "aria-hidden",
-    "true"
-  );
-
-  if ($("#viewerContent"))
-    $("#viewerContent").innerHTML =
-      "";
-
-  document.body.style.overflow =
-    "";
-}
-
-$("#viewerClose")?.addEventListener(
-  "click",
-  closeViewer
-);
-
-$("#viewer")?.addEventListener(
-  "click",
-  e => {
-
-    if (
-      e.target.id ===
-      "viewer"
-    ) {
-      closeViewer();
-    }
-
-  }
-);
-
-$("#viewerPrev")?.addEventListener(
-  "click",
-  () => {
-
-    const posts =
-      getFilteredPosts();
-
-    if (!posts.length) return;
-
-    viewerIndex =
-      (
-        viewerIndex -
-        1 +
-        posts.length
-      ) %
-      posts.length;
-
-    showViewerPost();
-  }
-);
-
-$("#viewerNext")?.addEventListener(
-  "click",
-  () => {
-
-    const posts =
-      getFilteredPosts();
-
-    if (!posts.length) return;
-
-    viewerIndex =
-      (
-        viewerIndex +
-        1
-      ) %
-      posts.length;
-
-    showViewerPost();
-  }
-);
-
-document.addEventListener(
-  "keydown",
-  e => {
-
-    const viewer =
-      $("#viewer");
-
-    if (
-      !viewer ||
-      !viewer.classList.contains(
-        "open"
-      )
-    ) return;
-
-    if (e.key === "Escape")
-      closeViewer();
-
-    if (e.key === "ArrowLeft")
-      $("#viewerPrev")?.click();
-
-    if (e.key === "ArrowRight")
-      $("#viewerNext")?.click();
-
-  }
-);
-
-/* =========================================================
-FILTRES
-========================================================= */
-
-$$(".tab").forEach(
-  tab => {
-
-    tab.onclick = () => {
-
-      $$(".tab").forEach(
-        t =>
-          t.classList.remove(
-            "active"
-          )
-      );
-
-      tab.classList.add(
-        "active"
-      );
-
-      state.filter =
-        tab.dataset.filter;
-
-      save();
-
-      renderGrid();
-    };
-
-  }
-);
-
-/* =========================================================
-MODIFICATION PROFIL
-========================================================= */
-
-$("#editProfileBtn")?.addEventListener(
-  "click",
-  () => {
-
-    if ($("#nameInput"))
-      $("#nameInput").value =
-        state.profile.name || "";
-
-    if ($("#usernameInput"))
-      $("#usernameInput").value =
-        state.profile.username || "";
-
-    if ($("#bioInput"))
-      $("#bioInput").value =
-        state.profile.bio || "";
-
-    if ($("#linkInput"))
-      $("#linkInput").value =
-        state.profile.link || "";
-
-    const dialog =
-      $("#profileDialog");
-
-    if (
-      dialog &&
-      typeof dialog.showModal ===
-      "function"
-    ) {
-      dialog.showModal();
-    }
-
-  }
-);
-
-$("#profileForm")?.addEventListener(
-  "submit",
-  async e => {
-
-    e.preventDefault();
-
-    if (!supabaseReady()) return;
-
-    const name =
-      $("#nameInput").value.trim() ||
-      defaults.name;
-
-    const username =
-      $("#usernameInput").value.trim() ||
-      defaults.username;
-
-    const bio =
-      $("#bioInput").value.trim();
-
-    const link =
-      $("#linkInput").value.trim();
-
-    try {
-
-      const {
-        data: { user },
-        error: userError
-      } =
-        await supabaseClient.auth.getUser();
-
-      if (userError || !user) {
-        throw new Error(
-          "Utilisateur non connecté."
-        );
-      }
-
-      const result =
-        await supabaseClient
-          .from("profiles")
-          .update({
-            name,
-            username,
-            bio,
-            link
-          })
-          .eq("id", user.id);
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      state.profile.name = name;
-      state.profile.username = username;
-      state.profile.bio = bio;
-      state.profile.link = link;
-
-      save();
-      renderProfile();
-
-      $("#profileDialog")?.close();
-
-      toast("Profil enregistré");
-
-    } catch (error) {
-
-      console.error(
-        "Erreur modification profil :",
-        error
-      );
-
-      toast(
-        error?.message ||
-        "Impossible d'enregistrer le profil"
-      );
-
-    }
-
-  }
-);
-
-/* =========================================================
-MEDIA PROFIL / BANNIERE
-========================================================= */
-
-async function setMedia(
-  input,
-  img,
-  video,
-  storagePath,
-  type
-) {
-
-  const file =
-    input?.files?.[0];
-
-  if (!file) return;
-
-  if (!supabaseReady()) return;
 
   const progress =
     $("#uploadProgress");
@@ -1308,341 +1337,31 @@ async function setMedia(
   const progressFill =
     $("#uploadProgressFill");
 
-  if (progress)
+  if (progress) {
     progress.classList.add(
       "show"
     );
+  }
 
   try {
-
-    if (progressText)
-      progressText.textContent =
-        "Envoi… 10%";
-
-    if (progressFill)
-      progressFill.style.width =
-        "10%";
-
-    const extension =
-      file.name
-        .split(".")
-        .pop()
-        .toLowerCase();
-
-    const filename =
-      type +
-      "_" +
-      Date.now() +
-      "_" +
-      Math.random()
-        .toString(36)
-        .slice(2) +
-      "." +
-      extension;
-
-    const path =
-      storagePath +
-      "/" +
-      filename;
-
-    if (progressText)
-      progressText.textContent =
-        "Envoi… 30%";
-
-    if (progressFill)
-      progressFill.style.width =
-        "30%";
-
-    const upload =
-      await supabaseClient.storage
-        .from("media")
-        .upload(
-          path,
-          file,
-          {
-            cacheControl: "3600",
-            upsert: false
-          }
-        );
-
-    if (upload.error)
-      throw upload.error;
-
-    if (progressText)
-      progressText.textContent =
-        "Envoi… 70%";
-
-    if (progressFill)
-      progressFill.style.width =
-        "70%";
-
-    const publicResult =
-      supabaseClient.storage
-        .from("media")
-        .getPublicUrl(path);
-
-    const publicUrl =
-      publicResult.data?.publicUrl;
-
-    if (!publicUrl)
-      throw new Error(
-        "Impossible d'obtenir l'URL publique."
-      );
-
-    state.customMedia[type] =
-      publicUrl;
-
-    save();
-
-    displayMedia(
-      img,
-      video,
-      publicUrl,
-      file.type
-    );
-
-    if (progressText)
-      progressText.textContent =
-        "Envoi… 100%";
-
-    if (progressFill)
-      progressFill.style.width =
-        "100%";
-
-    toast(
-      type === "avatar"
-        ? "Photo de profil modifiée"
-        : "Bannière modifiée"
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Erreur upload média :",
-      error
-    );
-
-    toast(
-      error?.message ||
-      "Erreur pendant l'envoi"
-    );
-
-  } finally {
-
-    setTimeout(() => {
-
-      if (progress)
-        progress.classList.remove(
-          "show"
-        );
-
-      if (progressFill)
-        progressFill.style.width =
-          "0%";
-
-    }, 700);
-
-  }
-}
-
-function displayMedia(
-  img,
-  video,
-  url,
-  mime = ""
-) {
-
-  const isVideo =
-    mime.startsWith("video/") ||
-    /\.(mp4|webm|mov|m4v|ogg)$/i.test(
-      url
-    );
-
-  if (isVideo) {
-
-    if (img) {
-
-      img.style.display =
-        "none";
-
-      img.removeAttribute(
-        "src"
-      );
-    }
-
-    if (video) {
-
-      video.src = url;
-
-      video.style.display =
-        "block";
-
-      video.muted = true;
-      video.loop = true;
-      video.playsInline = true;
-
-      video.play()
-        .catch(() => {});
-    }
-
-  } else {
-
-    if (video) {
-
-      video.pause();
-
-      video.removeAttribute(
-        "src"
-      );
-
-      video.load();
-
-      video.style.display =
-        "none";
-    }
-
-    if (img) {
-
-      img.src = url;
-
-      img.style.display =
-        "block";
-    }
-  }
-}
-
-function restoreMedia() {
-
-  const avatarUrl =
-    state.customMedia.avatar;
-
-  const coverUrl =
-    state.customMedia.cover;
-
-  if (avatarUrl) {
-
-    displayMedia(
-      $("#avatarImg"),
-      $("#avatarVideo"),
-      avatarUrl
-    );
-  }
-
-  if (coverUrl) {
-
-    displayMedia(
-      $("#coverImg"),
-      $("#coverVideo"),
-      coverUrl
-    );
-  }
-}
-
-$("#avatarInput")?.addEventListener(
-  "change",
-  () => {
-
-    setMedia(
-      $("#avatarInput"),
-      $("#avatarImg"),
-      $("#avatarVideo"),
-      "profiles",
-      "avatar"
-    );
-
-  }
-);
-
-$("#coverInput")?.addEventListener(
-  "change",
-  () => {
-
-    setMedia(
-      $("#coverInput"),
-      $("#coverImg"),
-      $("#coverVideo"),
-      "covers",
-      "cover"
-    );
-
-  }
-);
-
-/* =========================================================
-PUBLICATION
-========================================================= */
-
-$("#addPostBtn")?.addEventListener(
-  "click",
-  () => {
-
-    $("#postInput")?.click();
-
-  }
-);
-
-$("#postInput")?.addEventListener(
-  "change",
-  async () => {
-
-    const file =
-      $("#postInput")?.files?.[0];
-
-    if (!file) return;
-
-    await uploadPost(file);
-
-    $("#postInput").value =
-      "";
-
-  }
-);
-
-async function uploadPost(file) {
-
-  if (!supabaseReady()) return;
-
-  const progress =
-    $("#uploadProgress");
-
-  const progressText =
-    $("#uploadProgressText");
-
-  const progressFill =
-    $("#uploadProgressFill");
-
-  if (progress)
-    progress.classList.add(
-      "show"
-    );
-
-  try {
-
-    if (progressText)
-      progressText.textContent =
-        "Envoi… 10%";
-
-    if (progressFill)
-      progressFill.style.width =
-        "10%";
-
-    const isVideo =
+    const type =
       file.type.startsWith(
         "video/"
-      );
-
-    const type =
-      isVideo
+      )
         ? "video"
         : "image";
 
     const extension =
-      file.name
-        .split(".")
-        .pop()
-        .toLowerCase();
+      (
+        file.name
+          .split(".")
+          .pop() ||
+        "bin"
+      ).toLowerCase();
 
     const filename =
+      currentUser.id +
+      "_" +
       Date.now() +
       "_" +
       Math.random()
@@ -1652,17 +1371,20 @@ async function uploadPost(file) {
       extension;
 
     const path =
-      "posts/" + filename;
+      "posts/" +
+      filename;
 
-    if (progressText)
+    if (progressText) {
       progressText.textContent =
-        "Envoi… 30%";
+        "Envoi… 20%";
+    }
 
-    if (progressFill)
+    if (progressFill) {
       progressFill.style.width =
-        "30%";
+        "20%";
+    }
 
-    const upload =
+    const { error: uploadError } =
       await supabaseClient.storage
         .from("media")
         .upload(
@@ -1674,75 +1396,92 @@ async function uploadPost(file) {
           }
         );
 
-    if (upload.error)
-      throw upload.error;
+    if (uploadError) {
+      throw uploadError;
+    }
 
-    if (progressText)
+    if (progressText) {
       progressText.textContent =
-        "Envoi… 70%";
+        "Envoi… 65%";
+    }
 
-    if (progressFill)
+    if (progressFill) {
       progressFill.style.width =
-        "70%";
+        "65%";
+    }
 
-    const publicResult =
+    const { data: publicData } =
       supabaseClient.storage
         .from("media")
         .getPublicUrl(path);
 
     const publicUrl =
-      publicResult.data?.publicUrl;
+      publicData?.publicUrl;
 
-    if (!publicUrl)
+    if (!publicUrl) {
       throw new Error(
         "URL publique introuvable."
       );
+    }
 
-    const insertResult =
+    const {
+      data,
+      error: insertError
+    } =
       await supabaseClient
         .from("posts")
         .insert({
-          type: type,
-          media_url: publicUrl,
+          user_id:
+            currentUser.id,
+
+          type,
+
+          media_url:
+            publicUrl,
+
           caption: "",
+
           likes: 0
         })
-        .select();
+        .select()
+        .single();
 
-    if (insertResult.error)
-      throw insertResult.error;
+    if (insertError) {
+      throw insertError;
+    }
 
-    const newPost = {
+    state.posts.unshift({
+      id: data.id,
 
-      id:
-        insertResult.data?.[0]?.id ||
-        Date.now(),
+      type:
+        data.type ||
+        type,
 
-      type: type,
+      src:
+        data.media_url ||
+        publicUrl,
 
-      src: publicUrl,
+      caption:
+        data.caption ||
+        "",
 
-      caption: "",
-
-      likes: 0
-
-    };
-
-    state.posts.unshift(
-      newPost
-    );
+      likes:
+        data.likes ||
+        0
+    });
 
     save();
-
     renderGrid();
 
-    if (progressText)
+    if (progressText) {
       progressText.textContent =
         "Envoi… 100%";
+    }
 
-    if (progressFill)
+    if (progressFill) {
       progressFill.style.width =
         "100%";
+    }
 
     toast(
       type === "video"
@@ -1751,7 +1490,6 @@ async function uploadPost(file) {
     );
 
   } catch (error) {
-
     console.error(
       "Erreur publication :",
       error
@@ -1763,38 +1501,40 @@ async function uploadPost(file) {
     );
 
   } finally {
-
     setTimeout(() => {
-
-      if (progress)
+      if (progress) {
         progress.classList.remove(
           "show"
         );
+      }
 
-      if (progressFill)
+      if (progressFill) {
         progressFill.style.width =
           "0%";
-
-    }, 700);
-
+      }
+    }, 600);
   }
 }
 
-/* =========================================================
-CHARGEMENT PUBLICATIONS SUPABASE
-========================================================= */
-
 async function loadSupabasePosts() {
-
-  if (!supabaseReady())
+  if (
+    !supabaseReady() ||
+    !currentUser
+  ) {
     return;
+  }
 
   try {
-
-    const result =
+    const { data, error } =
       await supabaseClient
         .from("posts")
-        .select("*")
+        .select(
+          "id,user_id,type,media_url,caption,likes"
+        )
+        .eq(
+          "user_id",
+          currentUser.id
+        )
         .order(
           "id",
           {
@@ -1802,20 +1542,13 @@ async function loadSupabasePosts() {
           }
         );
 
-    if (result.error) {
-
-      console.error(
-        "Erreur chargement publications :",
-        result.error
-      );
-
-      return;
+    if (error) {
+      throw error;
     }
 
-    const remotePosts =
-      (result.data || [])
-        .map(post => ({
-
+    state.posts =
+      (data || []).map(
+        post => ({
           id: post.id,
 
           type:
@@ -1832,42 +1565,450 @@ async function loadSupabasePosts() {
           likes:
             post.likes ||
             0
-
-        }));
-
-    state.posts =
-      remotePosts;
+        })
+      );
 
     save();
 
     renderGrid();
 
   } catch (error) {
-
     console.error(
-      "Erreur chargement Supabase :",
+      "Erreur chargement publications :",
       error
     );
 
+    state.posts = [];
+
+    renderGrid();
+
+    toast(
+      "Impossible de charger les publications"
+    );
   }
 }
+
+$("#addPostBtn")?.addEventListener(
+  "click",
+  () => {
+    $("#postInput")?.click();
+  }
+);
+
+$("#postInput")?.addEventListener(
+  "change",
+  async () => {
+    const input =
+      $("#postInput");
+
+    const file =
+      input?.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    await uploadPost(
+      file
+    );
+
+    input.value = "";
+  }
+);
+
+/* =========================================================
+LIKES
+========================================================= */
+
+function like(
+  id,
+  showAnimation = false
+) {
+  const post =
+    state.posts.find(
+      item =>
+        item.id == id
+    );
+
+  if (!post) {
+    return;
+  }
+
+  if (!state.liked[id]) {
+    post.likes =
+      (post.likes || 0) +
+      1;
+
+    state.liked[id] =
+      true;
+
+  } else {
+    post.likes =
+      Math.max(
+        0,
+        (post.likes || 0) -
+          1
+      );
+
+    state.liked[id] =
+      false;
+  }
+
+  save();
+  renderGrid();
+
+  if (
+    showAnimation &&
+    state.liked[id]
+  ) {
+    const target =
+      [...(
+        $("#postGrid")
+          ?.children ||
+        []
+      )].find(
+        element =>
+          element.dataset.id ==
+          id
+      );
+
+    if (target) {
+      const heart =
+        document.createElement(
+          "div"
+        );
+
+      heart.className =
+        "heart-pop";
+
+      heart.textContent =
+        "♥";
+
+      target.appendChild(
+        heart
+      );
+
+      setTimeout(
+        () =>
+          heart.remove(),
+        750
+      );
+    }
+  }
+}
+
+/* =========================================================
+VISIONNEUSE
+========================================================= */
+
+let viewerIndex = 0;
+
+function getFilteredPosts() {
+  return state.posts.filter(
+    post =>
+      state.filter === "all" ||
+      post.type === state.filter
+  );
+}
+
+function openViewer(id) {
+  const posts =
+    getFilteredPosts();
+
+  const index =
+    posts.findIndex(
+      post =>
+        post.id == id
+    );
+
+  if (index < 0) {
+    return;
+  }
+
+  viewerIndex =
+    index;
+
+  showViewerPost();
+
+  const viewer =
+    $("#viewer");
+
+  if (!viewer) {
+    return;
+  }
+
+  viewer.classList.add(
+    "open"
+  );
+
+  viewer.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+function showViewerPost() {
+  const posts =
+    getFilteredPosts();
+
+  const post =
+    posts[viewerIndex];
+
+  if (!post) {
+    return;
+  }
+
+  const content =
+    $("#viewerContent");
+
+  if (!content) {
+    return;
+  }
+
+  content.innerHTML = "";
+
+  const element =
+    mediaElement(
+      post,
+      true
+    );
+
+  content.appendChild(
+    element
+  );
+
+  if (
+    post.type ===
+    "video"
+  ) {
+    element.autoplay =
+      true;
+
+    element.controls =
+      true;
+
+    element.addEventListener(
+      "canplay",
+      () => {
+        element
+          .play()
+          .catch(
+            () => {}
+          );
+      },
+      {
+        once: true
+      }
+    );
+  }
+
+  if ($("#viewerCaption")) {
+    $("#viewerCaption").textContent =
+      post.caption ||
+      "";
+  }
+}
+
+function closeViewer() {
+  const viewer =
+    $("#viewer");
+
+  if (!viewer) {
+    return;
+  }
+
+  viewer.classList.remove(
+    "open"
+  );
+
+  viewer.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  if ($("#viewerContent")) {
+    $("#viewerContent").innerHTML =
+      "";
+  }
+
+  document.body.style.overflow =
+    "";
+}
+
+$("#viewerClose")?.addEventListener(
+  "click",
+  closeViewer
+);
+
+$("#viewer")?.addEventListener(
+  "click",
+  event => {
+    if (
+      event.target.id ===
+      "viewer"
+    ) {
+      closeViewer();
+    }
+  }
+);
+
+$("#viewerPrev")?.addEventListener(
+  "click",
+  () => {
+    const posts =
+      getFilteredPosts();
+
+    if (!posts.length) {
+      return;
+    }
+
+    viewerIndex =
+      (
+        viewerIndex -
+        1 +
+        posts.length
+      ) %
+      posts.length;
+
+    showViewerPost();
+  }
+);
+
+$("#viewerNext")?.addEventListener(
+  "click",
+  () => {
+    const posts =
+      getFilteredPosts();
+
+    if (!posts.length) {
+      return;
+    }
+
+    viewerIndex =
+      (
+        viewerIndex +
+        1
+      ) %
+      posts.length;
+
+    showViewerPost();
+  }
+);
+
+document.addEventListener(
+  "keydown",
+  event => {
+    const viewer =
+      $("#viewer");
+
+    if (
+      !viewer ||
+      !viewer.classList.contains(
+        "open"
+      )
+    ) {
+      return;
+    }
+
+    if (
+      event.key ===
+      "Escape"
+    ) {
+      closeViewer();
+    }
+
+    if (
+      event.key ===
+      "ArrowLeft"
+    ) {
+      $("#viewerPrev")
+        ?.click();
+    }
+
+    if (
+      event.key ===
+      "ArrowRight"
+    ) {
+      $("#viewerNext")
+        ?.click();
+    }
+  }
+);
+
+/* =========================================================
+FILTRES
+========================================================= */
+
+$$(".tab").forEach(
+  tab => {
+    tab.addEventListener(
+      "click",
+      () => {
+        $$(".tab").forEach(
+          item => {
+            item.classList.remove(
+              "active"
+            );
+          }
+        );
+
+        tab.classList.add(
+          "active"
+        );
+
+        state.filter =
+          tab.dataset.filter ||
+          "all";
+
+        save();
+
+        renderGrid();
+      }
+    );
+  }
+);
+
+/* =========================================================
+PARTAGE
+========================================================= */
+
+$("#shareBtn")?.addEventListener(
+  "click",
+  async () => {
+    try {
+      await navigator.clipboard.writeText(
+        location.href
+      );
+
+      toast(
+        "Lien du profil copié"
+      );
+
+    } catch {
+      toast(
+        "Copie du lien impossible"
+      );
+    }
+  }
+);
 
 /* =========================================================
 THEME
 ========================================================= */
 
 function applyTheme() {
-
   document.body.classList.toggle(
-    "dark",
-    state.dark
+    "light",
+    !state.dark
   );
 
   const button =
     $("#themeBtn");
 
   if (button) {
-
     button.textContent =
       state.dark
         ? "☀"
@@ -1878,55 +2019,15 @@ function applyTheme() {
 $("#themeBtn")?.addEventListener(
   "click",
   () => {
-
     state.dark =
       !state.dark;
 
     save();
 
     applyTheme();
-
   }
 );
-/* =========================================================
-DECONNEXION
-========================================================= */
 
-$("#logoutBtn")?.addEventListener(
-  "click",
-  async () => {
-
-    if (!supabaseReady()) return;
-
-    try {
-
-      const result =
-        await supabaseClient.auth.signOut();
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      showAuthScreen();
-
-      toast("Déconnecté");
-
-    } catch (error) {
-
-      console.error(
-        "Erreur déconnexion :",
-        error
-      );
-
-      toast(
-        error?.message ||
-        "Impossible de se déconnecter"
-      );
-
-    }
-
-  }
-);
 /* =========================================================
 PARAMETRES
 ========================================================= */
@@ -1934,11 +2035,9 @@ PARAMETRES
 $("#settingsBtn")?.addEventListener(
   "click",
   () => {
-
     toast(
       "Paramètres bientôt disponibles"
     );
-
   }
 );
 
@@ -1947,87 +2046,55 @@ INITIALISATION
 ========================================================= */
 
 async function initializeApp() {
+  setupAuth();
 
-  addAuthStyles();
-
-  restoreMedia();
-
-  renderProfile();
-
-  renderGrid();
-
-  applyTheme();
-
-  if (!supabaseClient) {
-
-    console.error(
-      "Supabase n'est pas disponible."
-    );
-
+  if (!supabaseReady()) {
     showAuthScreen();
-
-    setupAuth();
-
     return;
   }
 
   try {
-
-    console.log(
-      "Vérification de la session..."
-    );
-
-    const result =
+    const { data, error } =
       await supabaseClient.auth.getSession();
 
-    console.log(
-      "Session actuelle :",
-      result.data?.session
-        ? "CONNECTÉ"
-        : "NON CONNECTÉ"
-    );
-
-    if (result.error) {
-
-      console.error(
-        "Erreur getSession :",
-        result.error
-      );
-
-      showAuthScreen();
-
-    } else if (
-      result.data?.session?.user
-    ) {
-
-      showApp();
-
-      await loadUserProfile();
-
-      await loadSupabasePosts();
-
-    } else {
-
-      showAuthScreen();
-
+    if (error) {
+      throw error;
     }
 
-  } catch (error) {
+    const session =
+      data?.session;
 
+    if (!session?.user) {
+      currentUser = null;
+
+      showAuthScreen();
+
+      return;
+    }
+
+    currentUser =
+      session.user;
+
+    loadLocalStateForUser();
+
+    applyTheme();
+
+    await loadUserProfile();
+
+    await loadSupabasePosts();
+
+    showApp();
+
+  } catch (error) {
     console.error(
-      "Erreur vérification session :",
+      "Erreur initialisation :",
       error
     );
 
+    currentUser = null;
+
     showAuthScreen();
-
   }
-
-  setupAuth();
 }
-
-/* =========================================================
-LANCEMENT
-========================================================= */
 
 initializeApp();
