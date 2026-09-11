@@ -3374,29 +3374,42 @@ async function openFollowList(type) {
         );
 
     if (profilesError) {
-      throw profilesError;
-    }
 
-    const profileMap =
-      new Map(
-        (profiles || []).map(
-          profile => [
-            profile.id,
-            profile
-          ]
-        )
-      );
 
-    content.innerHTML = "";
+      /* =========================================================
+LISTE ABONNÉS / ABONNEMENTS
+========================================================= */
 
-    ids.forEach(id => {
+let followListUsers = [];
 
-      const profile =
-        profileMap.get(id);
 
-      if (!profile) {
-        return;
-      }
+function renderFollowList(users) {
+
+  const content =
+    $("#followListContent");
+
+  if (!content) {
+    return;
+  }
+
+  content.innerHTML = "";
+
+
+  if (!users.length) {
+
+    content.innerHTML =
+      `
+      <div class="follow-list-empty">
+        Aucun utilisateur trouvé
+      </div>
+      `;
+
+    return;
+  }
+
+
+  users.forEach(
+    profile => {
 
       const row =
         document.createElement(
@@ -3406,6 +3419,7 @@ async function openFollowList(type) {
       row.className =
         "follow-list-item";
 
+
       const avatar =
         document.createElement(
           "div"
@@ -3413,6 +3427,7 @@ async function openFollowList(type) {
 
       avatar.className =
         "follow-list-avatar";
+
 
       if (profile.avatar_url) {
 
@@ -3438,6 +3453,7 @@ async function openFollowList(type) {
 
       }
 
+
       const text =
         document.createElement(
           "div"
@@ -3445,6 +3461,7 @@ async function openFollowList(type) {
 
       text.className =
         "follow-list-text";
+
 
       const username =
         document.createElement(
@@ -3458,6 +3475,7 @@ async function openFollowList(type) {
         profile.username ||
         "Utilisateur";
 
+
       const name =
         document.createElement(
           "div"
@@ -3469,6 +3487,7 @@ async function openFollowList(type) {
       name.textContent =
         profile.name || "";
 
+
       text.appendChild(
         username
       );
@@ -3476,6 +3495,7 @@ async function openFollowList(type) {
       text.appendChild(
         name
       );
+
 
       row.appendChild(
         avatar
@@ -3485,11 +3505,13 @@ async function openFollowList(type) {
         text
       );
 
+
       row.addEventListener(
         "click",
         async () => {
 
-          dialog.close();
+          $("#followListPage").hidden =
+            true;
 
           await openUserProfile(
             profile.id
@@ -3498,11 +3520,189 @@ async function openFollowList(type) {
         }
       );
 
+
       content.appendChild(
         row
       );
 
-    });
+    }
+  );
+
+}
+
+
+async function openFollowList(type) {
+
+  if (
+    !supabaseReady() ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  const userId =
+    activeProfileId ||
+    currentUser.id;
+
+
+  const page =
+    $("#followListPage");
+
+  const title =
+    $("#followListTitle");
+
+  const searchInput =
+    $("#followListSearch");
+
+  const content =
+    $("#followListContent");
+
+
+  if (
+    !page ||
+    !title ||
+    !content
+  ) {
+    return;
+  }
+
+
+  const isFollowers =
+    type === "followers";
+
+
+  title.textContent =
+    isFollowers
+      ? "Abonnés"
+      : "Abonnements";
+
+
+  if (searchInput) {
+    searchInput.value = "";
+  }
+
+
+  content.innerHTML =
+    `
+    <div class="follow-list-empty">
+      Chargement...
+    </div>
+    `;
+
+
+  page.hidden = false;
+
+
+  try {
+
+    let followResult;
+
+
+    if (isFollowers) {
+
+      followResult =
+        await supabaseClient
+          .from("follows")
+          .select("follower_id")
+          .eq(
+            "following_id",
+            userId
+          );
+
+    } else {
+
+      followResult =
+        await supabaseClient
+          .from("follows")
+          .select("following_id")
+          .eq(
+            "follower_id",
+            userId
+          );
+
+    }
+
+
+    if (followResult.error) {
+      throw followResult.error;
+    }
+
+
+    const ids =
+      (followResult.data || [])
+        .map(
+          item =>
+            isFollowers
+              ? item.follower_id
+              : item.following_id
+        )
+        .filter(Boolean);
+
+
+    if (!ids.length) {
+
+      followListUsers = [];
+
+      content.innerHTML =
+        `
+        <div class="follow-list-empty">
+          ${
+            isFollowers
+              ? "Aucun abonné pour le moment"
+              : "Aucun abonnement pour le moment"
+          }
+        </div>
+        `;
+
+      return;
+    }
+
+
+    const {
+      data: profiles,
+      error: profilesError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,avatar_url"
+        )
+        .in(
+          "id",
+          ids
+        );
+
+
+    if (profilesError) {
+      throw profilesError;
+    }
+
+
+    const profileMap =
+      new Map(
+        (profiles || []).map(
+          profile => [
+            profile.id,
+            profile
+          ]
+        )
+      );
+
+
+    followListUsers =
+      ids
+        .map(
+          id =>
+            profileMap.get(id)
+        )
+        .filter(Boolean);
+
+
+    renderFollowList(
+      followListUsers
+    );
+
 
   } catch (error) {
 
@@ -3512,9 +3712,11 @@ async function openFollowList(type) {
     );
 
     content.innerHTML =
-      `<div class="follow-list-empty">
+      `
+      <div class="follow-list-empty">
         Impossible de charger la liste
-      </div>`;
+      </div>
+      `;
 
   }
 
@@ -3525,9 +3727,11 @@ $("#followersBtn")
   ?.addEventListener(
     "click",
     () => {
+
       openFollowList(
         "followers"
       );
+
     }
   );
 
@@ -3536,19 +3740,86 @@ $("#followingBtn")
   ?.addEventListener(
     "click",
     () => {
+
       openFollowList(
         "following"
       );
+
     }
   );
 
 
-$("#followListClose")
+$("#followListBack")
   ?.addEventListener(
     "click",
     () => {
-      $("#followListDialog")
-        ?.close();
+
+      const page =
+        $("#followListPage");
+
+      if (page) {
+        page.hidden = true;
+      }
+
+    }
+  );
+
+
+$("#followListSearch")
+  ?.addEventListener(
+    "input",
+    event => {
+
+      const query =
+        event.target.value
+          .trim()
+          .toLowerCase();
+
+
+      if (!query) {
+
+        renderFollowList(
+          followListUsers
+        );
+
+        return;
+      }
+
+
+      const filtered =
+        followListUsers.filter(
+          profile => {
+
+            const username =
+              (
+                profile.username ||
+                ""
+              ).toLowerCase();
+
+            const name =
+              (
+                profile.name ||
+                ""
+              ).toLowerCase();
+
+
+            return (
+              username.includes(
+                query
+              ) ||
+              name.includes(
+                query
+              )
+            );
+
+          }
+        );
+
+
+      renderFollowList(
+        filtered
+      );
+
     }
   );
 /* =========================================================
