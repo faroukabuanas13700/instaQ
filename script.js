@@ -1970,7 +1970,349 @@ $$(".tab").forEach(
     );
   }
 );
+/* =========================================================
+RECHERCHE UTILISATEURS
+========================================================= */
 
+let viewingOtherProfile = false;
+
+function setOwnerMode(isOwner) {
+  const addPostBtn = $("#addPostBtn");
+  const editProfileBtn = $("#editProfileBtn");
+  const coverEdit = $(".cover-edit");
+  const avatarPlus = $(".avatar-plus");
+  const avatarWrap = $(".avatar-wrap");
+
+  if (addPostBtn) {
+    addPostBtn.style.display =
+      isOwner ? "" : "none";
+  }
+
+  if (editProfileBtn) {
+    editProfileBtn.style.display =
+      isOwner ? "" : "none";
+  }
+
+  if (coverEdit) {
+    coverEdit.style.display =
+      isOwner ? "" : "none";
+  }
+
+  if (avatarPlus) {
+    avatarPlus.style.display =
+      isOwner ? "" : "none";
+  }
+
+  if (avatarWrap) {
+    avatarWrap.style.pointerEvents =
+      isOwner ? "" : "none";
+  }
+}
+
+async function searchUsers(query) {
+  if (!supabaseReady()) return;
+
+  const resultsBox =
+    $("#userSearchResults");
+
+  if (!resultsBox) return;
+
+  const search =
+    query.trim();
+
+  if (search.length < 2) {
+    resultsBox.innerHTML = "";
+    resultsBox.classList.remove("show");
+    return;
+  }
+
+  try {
+    const { data, error } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,avatar_url"
+        )
+        .or(
+          `username.ilike.%${search}%,name.ilike.%${search}%`
+        )
+        .limit(20);
+
+    if (error) {
+      throw error;
+    }
+
+    resultsBox.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      resultsBox.innerHTML =
+        `<div class="user-result-name">
+          Aucun utilisateur trouvé
+        </div>`;
+
+      resultsBox.classList.add("show");
+      return;
+    }
+
+    data.forEach(profile => {
+      const row =
+        document.createElement("div");
+
+      row.className = "user-result";
+
+      const avatar =
+        document.createElement("div");
+
+      avatar.className =
+        "user-result-avatar";
+
+      if (profile.avatar_url) {
+        const img =
+          document.createElement("img");
+
+        img.src = profile.avatar_url;
+        img.alt = profile.username || "";
+
+        avatar.appendChild(img);
+      } else {
+        avatar.textContent = "👤";
+      }
+
+      const text =
+        document.createElement("div");
+
+      text.className =
+        "user-result-text";
+
+      const username =
+        document.createElement("div");
+
+      username.className =
+        "user-result-username";
+
+      username.textContent =
+        profile.username ||
+        "Utilisateur";
+
+      const name =
+        document.createElement("div");
+
+      name.className =
+        "user-result-name";
+
+      name.textContent =
+        profile.name || "";
+
+      text.appendChild(username);
+      text.appendChild(name);
+
+      row.appendChild(avatar);
+      row.appendChild(text);
+
+      row.addEventListener(
+        "click",
+        async () => {
+          await openUserProfile(
+            profile.id
+          );
+        }
+      );
+
+      resultsBox.appendChild(row);
+    });
+
+    resultsBox.classList.add("show");
+
+  } catch (error) {
+    console.error(
+      "Erreur recherche utilisateurs :",
+      error
+    );
+
+    resultsBox.innerHTML =
+      `<div class="user-result-name">
+        Erreur pendant la recherche
+      </div>`;
+
+    resultsBox.classList.add("show");
+  }
+}
+
+async function openUserProfile(userId) {
+  if (!supabaseReady()) return;
+
+  try {
+    const profileResult =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,bio,link,avatar_url,cover_url"
+        )
+        .eq("id", userId)
+        .single();
+
+    if (profileResult.error) {
+      throw profileResult.error;
+    }
+
+    const postsResult =
+      await supabaseClient
+        .from("posts")
+        .select(
+          "id,user_id,type,media_url,caption,likes"
+        )
+        .eq("user_id", userId)
+        .order("id", {
+          ascending: false
+        });
+
+    if (postsResult.error) {
+      throw postsResult.error;
+    }
+
+    const profile =
+      profileResult.data;
+
+    viewingOtherProfile =
+      userId !== currentUser?.id;
+
+    state.profile.name =
+      profile.name || "";
+
+    state.profile.username =
+      profile.username || "";
+
+    state.profile.bio =
+      profile.bio || "";
+
+    state.profile.link =
+      profile.link || "";
+
+    state.customMedia.avatar =
+      profile.avatar_url || "";
+
+    state.customMedia.cover =
+      profile.cover_url || "";
+
+    state.posts =
+      (postsResult.data || []).map(
+        post => ({
+          id: post.id,
+          type:
+            post.type || "image",
+          src:
+            post.media_url,
+          caption:
+            post.caption || "",
+          likes:
+            post.likes || 0
+        })
+      );
+
+    renderProfile();
+    restoreMedia();
+    renderGrid();
+
+    setOwnerMode(
+      !viewingOtherProfile
+    );
+
+    const resultsBox =
+      $("#userSearchResults");
+
+    if (resultsBox) {
+      resultsBox.innerHTML = "";
+
+      if (viewingOtherProfile) {
+        const back =
+          document.createElement("div");
+
+        back.className =
+          "user-result";
+
+        back.innerHTML =
+          `<div class="user-result-text">
+            <div class="user-result-username">
+              ← Revenir à mon profil
+            </div>
+          </div>`;
+
+        back.addEventListener(
+          "click",
+          returnToOwnProfile
+        );
+
+        resultsBox.appendChild(back);
+        resultsBox.classList.add("show");
+      }
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  } catch (error) {
+    console.error(
+      "Erreur ouverture profil :",
+      error
+    );
+
+    toast(
+      "Impossible d'ouvrir ce profil"
+    );
+  }
+}
+
+async function returnToOwnProfile() {
+  if (!currentUser) return;
+
+  viewingOtherProfile = false;
+
+  setOwnerMode(true);
+
+  await loadUserProfile();
+  await loadSupabasePosts();
+
+  const input =
+    $("#userSearchInput");
+
+  const results =
+    $("#userSearchResults");
+
+  if (input) {
+    input.value = "";
+  }
+
+  if (results) {
+    results.innerHTML = "";
+    results.classList.remove("show");
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+let searchTimer = null;
+
+$("#userSearchInput")?.addEventListener(
+  "input",
+  event => {
+    clearTimeout(searchTimer);
+
+    const value =
+      event.target.value;
+
+    searchTimer = setTimeout(
+      () => {
+        searchUsers(value);
+      },
+      300
+    );
+  }
+);
 /* =========================================================
 PARTAGE
 ========================================================= */
