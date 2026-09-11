@@ -530,32 +530,63 @@
     </nav>
 
 
-    <!-- LISTE ABONNÉS / ABONNEMENTS -->
-    <dialog
-      class="dialog follow-list-dialog"
-      id="followListDialog"
+    <!-- PAGE ABONNÉS / ABONNEMENTS -->
+<section
+  id="followListPage"
+  class="follow-list-page"
+  hidden
+>
+
+  <header class="follow-page-header">
+
+    <button
+      id="followListBack"
+      class="follow-page-back"
+      type="button"
+      aria-label="Retour"
     >
-      <div class="follow-list-head">
-        <h2 id="followListTitle">
-          Abonnés
-        </h2>
+      ‹
+    </button>
 
-        <button
-          type="button"
-          class="close"
-          id="followListClose"
-          aria-label="Fermer"
-        >
-          ×
-        </button>
-      </div>
+    <h2 id="followListTitle">
+      Abonnés
+    </h2>
 
-      <div
-        id="followListContent"
-        class="follow-list-content"
-      ></div>
-    </dialog>
+    <div class="follow-page-header-space"></div>
 
+  </header>
+
+
+  <div class="follow-page-search">
+
+    <svg viewBox="0 0 24 24">
+      <circle
+        cx="11"
+        cy="11"
+        r="7"
+      ></circle>
+
+      <path
+        d="M16.5 16.5L21 21"
+      ></path>
+    </svg>
+
+    <input
+      id="followListSearch"
+      type="search"
+      placeholder="Rechercher"
+      autocomplete="off"
+    >
+
+  </div>
+
+
+  <div
+    id="followListContent"
+    class="follow-list-content"
+  ></div>
+
+</section>
 
     <!-- MODIFICATION PROFIL -->
     <dialog
