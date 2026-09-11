@@ -5,157 +5,658 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#000">
   <title>InstaQ</title>
-  <link rel="stylesheet" href="style.css?v=9">
+
+  <link rel="stylesheet" href="style.css?v=10">
 </head>
+
 <body>
 
-  <!-- ÉCRAN CONNEXION / INSCRIPTION -->
+  <!-- CONNEXION / INSCRIPTION -->
   <section id="authScreen" class="auth-screen" hidden>
     <div class="auth-box">
+
       <div class="auth-logo">InstaQ</div>
-      <p class="auth-subtitle">Partagez vos photos et vidéos</p>
+
+      <p class="auth-subtitle">
+        Partagez vos photos et vidéos
+      </p>
 
       <form id="loginForm" class="auth-form">
-        <input id="loginEmail" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
-        <input id="loginPassword" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
-        <button type="submit" class="auth-primary">Se connecter</button>
+        <input
+          id="loginEmail"
+          type="email"
+          placeholder="Adresse e-mail"
+          autocomplete="email"
+          required
+        >
+
+        <input
+          id="loginPassword"
+          type="password"
+          placeholder="Mot de passe"
+          autocomplete="current-password"
+          required
+        >
+
+        <button type="submit" class="auth-primary">
+          Se connecter
+        </button>
+
         <div class="auth-error" id="loginError"></div>
       </form>
 
-      <div class="auth-separator"><span>OU</span></div>
+      <div class="auth-separator">
+        <span>OU</span>
+      </div>
 
       <form id="signupForm" class="auth-form">
-        <input id="signupEmail" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
-        <input id="signupPassword" type="password" placeholder="Mot de passe" autocomplete="new-password" minlength="6" required>
-        <button type="submit" class="auth-secondary">Créer un compte</button>
+
+        <input
+          id="signupEmail"
+          type="email"
+          placeholder="Adresse e-mail"
+          autocomplete="email"
+          required
+        >
+
+        <input
+          id="signupPassword"
+          type="password"
+          placeholder="Mot de passe"
+          autocomplete="new-password"
+          minlength="6"
+          required
+        >
+
+        <button type="submit" class="auth-secondary">
+          Créer un compte
+        </button>
+
         <div class="auth-error" id="signupError"></div>
+
       </form>
+
     </div>
   </section>
 
-  <!-- INTERFACE PRINCIPALE -->
+
+  <!-- APPLICATION -->
   <div id="app" hidden>
+
+    <!-- BARRE SUPÉRIEURE -->
     <header class="topbar">
+
       <div class="topbar-inner">
-        <div class="brand">InstaQ</div>
+
+        <div class="brand">
+          InstaQ
+        </div>
 
         <div class="top-actions">
-          <button class="icon-btn" id="addPostBtn" type="button" aria-label="Ajouter une publication">＋</button>
-          <button class="icon-btn" id="logoutBtn" type="button" aria-label="Se déconnecter" title="Se déconnecter">⎋</button>
-          <button class="icon-btn" id="settingsBtn" type="button" aria-label="Paramètres">☰</button>
+
+          <button
+            class="icon-btn"
+            id="addPostBtn"
+            type="button"
+            aria-label="Ajouter une publication"
+          >
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+              <path d="M12 8v8M8 12h8"></path>
+            </svg>
+          </button>
+
+          <button
+            class="icon-btn"
+            id="logoutBtn"
+            type="button"
+            aria-label="Se déconnecter"
+            title="Se déconnecter"
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5"></path>
+              <path d="M14 8l4 4-4 4"></path>
+              <path d="M18 12H8"></path>
+            </svg>
+          </button>
+
+          <button
+            class="icon-btn"
+            id="settingsBtn"
+            type="button"
+            aria-label="Paramètres"
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+          </button>
+
         </div>
+
       </div>
-    </header>
-<section class="user-search-section">
-  <div class="user-search-wrap">
-    <input
-      id="userSearchInput"
-      type="search"
-      placeholder="Rechercher un utilisateur..."
-      autocomplete="off"
-    >
-  </div>
 
-  <div id="userSearchResults" class="user-search-results"></div>
-</section>
-    <main class="profile-page">
-      <section class="cover">
-        <div class="cover-media" id="coverMedia">
-          <img id="coverImg" alt="Bannière">
-          <video id="coverVideo" muted loop playsinline></video>
+    </header>
+
+
+    <!-- RECHERCHE -->
+    <section class="user-search-section">
+
+      <div class="user-search-wrap">
+
+        <div class="search-field">
+
+          <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M16.5 16.5L21 21"></path>
+          </svg>
+
+          <input
+            id="userSearchInput"
+            type="search"
+            placeholder="Rechercher"
+            autocomplete="off"
+          >
+
         </div>
 
-        <label class="cover-edit" for="coverInput">Modifier la bannière</label>
-        <input id="coverInput" type="file" accept="image/*,video/*" hidden>
-      </section>
+      </div>
 
-      <section class="profile-head">
-        <label class="avatar-wrap" for="avatarInput" title="Modifier la photo de profil">
-          <img id="avatarImg" alt="Photo de profil">
-          <video id="avatarVideo" muted loop playsinline></video>
-          <span class="avatar-placeholder">👤</span>
-          <span class="avatar-plus">+</span>
+      <div
+        id="userSearchResults"
+        class="user-search-results"
+      ></div>
+
+    </section>
+
+
+    <!-- PROFIL -->
+    <main class="profile-page">
+
+      <!-- BANNIÈRE -->
+      <section class="cover">
+
+        <div
+          class="cover-media"
+          id="coverMedia"
+        >
+
+          <img
+            id="coverImg"
+            alt="Bannière"
+          >
+
+          <video
+            id="coverVideo"
+            muted
+            loop
+            autoplay
+            playsinline
+          ></video>
+
+        </div>
+
+        <label
+          class="cover-edit"
+          for="coverInput"
+        >
+          Modifier
         </label>
 
-        <input id="avatarInput" type="file" accept="image/*,video/*" hidden>
+        <input
+          id="coverInput"
+          type="file"
+          accept="image/*,video/*"
+          hidden
+        >
 
-        <div class="profile-main">
-          <div class="username-row">
-            <h1 id="username"></h1>
-            <span class="verified">✓</span>
+      </section>
+
+
+      <!-- ZONE PROFIL -->
+      <section class="profile-info">
+
+        <div class="profile-top">
+
+          <!-- PHOTO PROFIL -->
+          <div class="avatar-area">
+
+            <label
+              class="avatar-wrap"
+              for="avatarInput"
+              title="Modifier la photo de profil"
+            >
+
+              <img
+                id="avatarImg"
+                alt="Photo de profil"
+              >
+
+              <video
+                id="avatarVideo"
+                muted
+                loop
+                autoplay
+                playsinline
+              ></video>
+
+              <span class="avatar-placeholder">
+                👤
+              </span>
+
+              <span class="avatar-plus">
+                +
+              </span>
+
+            </label>
+
+            <input
+              id="avatarInput"
+              type="file"
+              accept="image/*,video/*"
+              hidden
+            >
+
           </div>
 
-          <div class="profile-actions">
-            <button class="primary-btn" id="editProfileBtn" type="button">Modifier le profil</button>
-            <button class="secondary-btn" id="shareBtn" type="button">Partager le profil</button>
-          </div>
+
+          <!-- STATISTIQUES -->
+          <section class="stats">
+
+            <div>
+              <strong id="postCount">
+                0
+              </strong>
+
+              <span>
+                publications
+              </span>
+            </div>
+
+            <div>
+              <strong id="followers">
+                0
+              </strong>
+
+              <span>
+                abonnés
+              </span>
+            </div>
+
+            <div>
+              <strong id="following">
+                0
+              </strong>
+
+              <span>
+                abonnements
+              </span>
+            </div>
+
+          </section>
+
         </div>
+
+
+        <!-- PSEUDO -->
+        <div class="username-row">
+
+          <h1 id="username"></h1>
+
+          <span class="verified">
+            ✓
+          </span>
+
+        </div>
+
+
+        <!-- BIO -->
+        <section class="bio">
+
+          <strong id="displayName"></strong>
+
+          <p id="bioText"></p>
+
+          <a
+            id="bioLink"
+            href="#"
+            target="_blank"
+            rel="noopener"
+          ></a>
+
+        </section>
+
+
+        <!-- BOUTONS -->
+        <div class="profile-actions">
+
+          <button
+            class="primary-btn"
+            id="editProfileBtn"
+            type="button"
+          >
+            Modifier le profil
+          </button>
+
+          <button
+            class="secondary-btn"
+            id="shareBtn"
+            type="button"
+          >
+            Partager le profil
+          </button>
+
+        </div>
+
       </section>
 
-      <section class="stats">
-        <div><strong id="postCount">0</strong><span>publications</span></div>
-        <div><strong id="followers">0</strong><span>abonnés</span></div>
-        <div><strong id="following">0</strong><span>abonnements</span></div>
-      </section>
 
-      <section class="bio">
-        <strong id="displayName"></strong>
-        <p id="bioText"></p>
-        <a id="bioLink" href="#" target="_blank" rel="noopener"></a>
-      </section>
+      <!-- ONGLETS -->
+      <nav
+        class="tabs"
+        aria-label="Publications"
+      >
 
-      <nav class="tabs" aria-label="Publications">
-        <button class="tab active" type="button" data-filter="all" aria-label="Toutes les publications">▦</button>
-        <button class="tab" type="button" data-filter="image" aria-label="Photos">▧</button>
-        <button class="tab" type="button" data-filter="video" aria-label="Vidéos">▶</button>
+        <button
+          class="tab active"
+          type="button"
+          data-filter="all"
+          aria-label="Toutes les publications"
+        >
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+          </svg>
+        </button>
+
+        <button
+          class="tab"
+          type="button"
+          data-filter="image"
+          aria-label="Photos"
+        >
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <path d="M21 15l-5-5L5 21"></path>
+          </svg>
+        </button>
+
+        <button
+          class="tab"
+          type="button"
+          data-filter="video"
+          aria-label="Vidéos"
+        >
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+            <path d="M10 8l6 4-6 4z"></path>
+          </svg>
+        </button>
+
       </nav>
 
-      <section class="grid" id="postGrid"></section>
-      <div class="empty" id="emptyState">Aucune publication.</div>
+
+      <!-- PUBLICATIONS -->
+      <section
+        class="grid"
+        id="postGrid"
+      ></section>
+
+      <div
+        class="empty"
+        id="emptyState"
+      >
+        Aucune publication.
+      </div>
+
     </main>
 
-    <button class="theme-btn" id="themeBtn" type="button" aria-label="Changer le thème">☾</button>
 
-    <dialog class="dialog" id="profileDialog">
+    <!-- BOUTON THÈME -->
+    <button
+      class="theme-btn"
+      id="themeBtn"
+      type="button"
+      aria-label="Changer le thème"
+    >
+      ☾
+    </button>
+
+
+    <!-- BARRE BAS -->
+    <nav class="bottom-nav">
+
+      <button
+        id="bottomHomeBtn"
+        class="bottom-nav-btn active"
+        type="button"
+        aria-label="Accueil"
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="M3 11l9-8 9 8"></path>
+          <path d="M5 10v10h14V10"></path>
+        </svg>
+      </button>
+
+      <button
+        id="bottomSearchBtn"
+        class="bottom-nav-btn"
+        type="button"
+        aria-label="Rechercher"
+      >
+        <svg viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M16.5 16.5L21 21"></path>
+        </svg>
+      </button>
+
+      <button
+        id="bottomAddPostBtn"
+        class="bottom-nav-btn"
+        type="button"
+        aria-label="Créer"
+      >
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+          <path d="M12 8v8M8 12h8"></path>
+        </svg>
+      </button>
+
+      <button
+        id="bottomProfileBtn"
+        class="bottom-nav-btn"
+        type="button"
+        aria-label="Mon profil"
+      >
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M4 21c1-5 4-7 8-7s7 2 8 7"></path>
+        </svg>
+      </button>
+
+    </nav>
+
+
+    <!-- MODIFICATION PROFIL -->
+    <dialog
+      class="dialog"
+      id="profileDialog"
+    >
+
       <form id="profileForm">
+
         <div class="dialog-head">
-          <h2>Modifier le profil</h2>
-          <button type="button" class="close" id="profileDialogClose" aria-label="Fermer">×</button>
+
+          <h2>
+            Modifier le profil
+          </h2>
+
+          <button
+            type="button"
+            class="close"
+            id="profileDialogClose"
+            aria-label="Fermer"
+          >
+            ×
+          </button>
+
         </div>
 
-        <label>Nom<input id="nameInput" maxlength="40"></label>
-        <label>Nom d'utilisateur<input id="usernameInput" maxlength="30"></label>
-        <label>Bio<textarea id="bioInput" maxlength="150"></textarea></label>
-        <label>Lien<input id="linkInput" type="url" placeholder="https://..."></label>
+        <label>
+          Nom
+
+          <input
+            id="nameInput"
+            maxlength="40"
+          >
+        </label>
+
+        <label>
+          Nom d'utilisateur
+
+          <input
+            id="usernameInput"
+            maxlength="30"
+          >
+        </label>
+
+        <label>
+          Bio
+
+          <textarea
+            id="bioInput"
+            maxlength="150"
+          ></textarea>
+        </label>
+
+        <label>
+          Lien
+
+          <input
+            id="linkInput"
+            type="url"
+            placeholder="https://..."
+          >
+        </label>
 
         <div class="dialog-actions">
-          <button type="button" class="secondary-btn" id="profileCancelBtn">Annuler</button>
-          <button type="submit" class="primary-btn">Enregistrer</button>
+
+          <button
+            type="button"
+            class="secondary-btn"
+            id="profileCancelBtn"
+          >
+            Annuler
+          </button>
+
+          <button
+            type="submit"
+            class="primary-btn"
+          >
+            Enregistrer
+          </button>
+
         </div>
+
       </form>
+
     </dialog>
 
-    <input id="postInput" type="file" accept="image/*,video/*" hidden>
 
-    <div class="viewer" id="viewer" aria-hidden="true">
-      <button class="viewer-close" id="viewerClose" type="button" aria-label="Fermer">×</button>
-      <button class="viewer-prev" id="viewerPrev" type="button" aria-label="Précédent">‹</button>
-      <div class="viewer-content" id="viewerContent"></div>
-      <button class="viewer-next" id="viewerNext" type="button" aria-label="Suivant">›</button>
-      <div class="viewer-caption" id="viewerCaption"></div>
+    <!-- INPUT PUBLICATION -->
+    <input
+      id="postInput"
+      type="file"
+      accept="image/*,video/*"
+      hidden
+    >
+
+
+    <!-- VISIONNEUSE -->
+    <div
+      class="viewer"
+      id="viewer"
+      aria-hidden="true"
+    >
+
+      <button
+        class="viewer-close"
+        id="viewerClose"
+        type="button"
+        aria-label="Fermer"
+      >
+        ×
+      </button>
+
+      <button
+        class="viewer-prev"
+        id="viewerPrev"
+        type="button"
+        aria-label="Précédent"
+      >
+        ‹
+      </button>
+
+      <div
+        class="viewer-content"
+        id="viewerContent"
+      ></div>
+
+      <button
+        class="viewer-next"
+        id="viewerNext"
+        type="button"
+        aria-label="Suivant"
+      >
+        ›
+      </button>
+
+      <div
+        class="viewer-caption"
+        id="viewerCaption"
+      ></div>
+
     </div>
 
-    <div class="upload-progress" id="uploadProgress">
-      <div class="upload-progress-text" id="uploadProgressText">Envoi… 0%</div>
-      <div class="upload-progress-bar">
-        <div class="upload-progress-fill" id="uploadProgressFill"></div>
+
+    <!-- PROGRESSION -->
+    <div
+      class="upload-progress"
+      id="uploadProgress"
+    >
+
+      <div
+        class="upload-progress-text"
+        id="uploadProgressText"
+      >
+        Envoi… 0%
       </div>
+
+      <div class="upload-progress-bar">
+
+        <div
+          class="upload-progress-fill"
+          id="uploadProgressFill"
+        ></div>
+
+      </div>
+
     </div>
+
   </div>
 
-  <div class="toast" id="toast"></div>
+
+  <div
+    class="toast"
+    id="toast"
+  ></div>
+
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./script.js?v=9"></script>
+
+  <script src="./script.js?v=10"></script>
+
 </body>
 </html>
