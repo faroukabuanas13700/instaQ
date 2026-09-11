@@ -1,513 +1,150 @@
 <!doctype html>
-
 <html lang="fr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#000">
   <title>InstaQ</title>
-  <link rel="stylesheet" href="style.css">
-</head><body>  <!-- ÉCRAN CONNEXION / INSCRIPTION -->  <div id="authScreen" class="auth-screen"><div class="auth-box">
+  <link rel="stylesheet" href="style.css?v=8">
+</head>
+<body>
 
-  <div class="auth-logo">InstaQ</div>
+  <!-- ÉCRAN CONNEXION / INSCRIPTION -->
+  <section id="authScreen" class="auth-screen" hidden>
+    <div class="auth-box">
+      <div class="auth-logo">InstaQ</div>
+      <p class="auth-subtitle">Partagez vos photos et vidéos</p>
 
-  <p class="auth-subtitle">
-    Partagez vos photos et vidéos
-  </p>
+      <form id="loginForm" class="auth-form">
+        <input id="loginEmail" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
+        <input id="loginPassword" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
+        <button type="submit" class="auth-primary">Se connecter</button>
+        <div class="auth-error" id="loginError"></div>
+      </form>
 
-  <!-- CONNEXION -->
-  <form id="loginForm" class="auth-form">
+      <div class="auth-separator"><span>OU</span></div>
 
-    <input
-      id="loginEmail"
-      type="email"
-      placeholder="Adresse e-mail"
-      autocomplete="email"
-      required
-    >
-
-    <input
-      id="loginPassword"
-      type="password"
-      placeholder="Mot de passe"
-      autocomplete="current-password"
-      required
-    >
-
-    <button type="submit" class="auth-primary">
-      Se connecter
-    </button>
-
-    <div class="auth-error" id="loginError"></div>
-
-  </form>
-
-  <div class="auth-separator">
-    <span>OU</span>
-  </div>
-
-  <!-- INSCRIPTION -->
-  <form id="signupForm" class="auth-form">
-
-    <input
-      id="signupEmail"
-      type="email"
-      placeholder="Adresse e-mail"
-      autocomplete="email"
-      required
-    >
-
-    <input
-      id="signupPassword"
-      type="password"
-      placeholder="Mot de passe"
-      autocomplete="new-password"
-      minlength="6"
-      required
-    >
-
-    <button type="submit" class="auth-secondary">
-      Créer un compte
-    </button>
-
-    <div class="auth-error" id="signupError"></div>
-
-  </form>
-
-</div>
-
-  </div>  <!-- INTERFACE PRINCIPALE -->  <div id="app" style="display:none;"><header class="topbar">
-  <div class="topbar-inner">
-
-    <div class="brand">InstaQ</div>
-
-    <div class="top-actions">
-
-  <button
-    class="icon-btn"
-    id="addPostBtn"
-    aria-label="Ajouter une publication"
-  >
-    ＋
-  </button>
-
-  <button
-    class="icon-btn"
-    id="logoutBtn"
-    aria-label="Se déconnecter"
-    title="Se déconnecter"
-  >
-    ⎋
-  </button>
-
-  <button
-    class="icon-btn"
-    id="settingsBtn"
-    aria-label="Paramètres"
-  >
-    ☰
-  </button>
-
+      <form id="signupForm" class="auth-form">
+        <input id="signupEmail" type="email" placeholder="Adresse e-mail" autocomplete="email" required>
+        <input id="signupPassword" type="password" placeholder="Mot de passe" autocomplete="new-password" minlength="6" required>
+        <button type="submit" class="auth-secondary">Créer un compte</button>
+        <div class="auth-error" id="signupError"></div>
+      </form>
     </div>
-
-    </div>
-
-  </div>
-</header>
-
-
-<main class="profile-page">
-
-  <!-- BANNIÈRE -->
-  <section class="cover">
-
-    <div class="cover-media" id="coverMedia">
-
-      <img id="coverImg" alt="Bannière">
-
-      <video
-        id="coverVideo"
-        muted
-        loop
-        playsinline
-      ></video>
-
-    </div>
-
-    <label
-      class="cover-edit"
-      for="coverInput"
-    >
-      Modifier la bannière
-    </label>
-
-    <input
-      id="coverInput"
-      type="file"
-      accept="image/*,video/*"
-      hidden
-    >
-
   </section>
 
+  <!-- INTERFACE PRINCIPALE -->
+  <div id="app" hidden>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">InstaQ</div>
 
-  <!-- PROFIL -->
-  <section class="profile-head">
-
-    <label
-      class="avatar-wrap"
-      for="avatarInput"
-      title="Modifier la photo de profil"
-    >
-
-      <img
-        id="avatarImg"
-        alt="Photo de profil"
-      >
-
-      <video
-        id="avatarVideo"
-        muted
-        loop
-        playsinline
-      ></video>
-
-      <span class="avatar-plus">+</span>
-
-    </label>
-
-    <input
-      id="avatarInput"
-      type="file"
-      accept="image/*,video/*"
-      hidden
-    >
-
-
-    <div class="profile-main">
-
-      <div class="username-row">
-
-        <h1 id="username">
-          farouk abu anas
-        </h1>
-
-        <span class="verified">
-          ✓
-        </span>
-
+        <div class="top-actions">
+          <button class="icon-btn" id="addPostBtn" type="button" aria-label="Ajouter une publication">＋</button>
+          <button class="icon-btn" id="logoutBtn" type="button" aria-label="Se déconnecter" title="Se déconnecter">⎋</button>
+          <button class="icon-btn" id="settingsBtn" type="button" aria-label="Paramètres">☰</button>
+        </div>
       </div>
+    </header>
 
+    <main class="profile-page">
+      <section class="cover">
+        <div class="cover-media" id="coverMedia">
+          <img id="coverImg" alt="Bannière">
+          <video id="coverVideo" muted loop playsinline></video>
+        </div>
 
-      <div class="profile-actions">
+        <label class="cover-edit" for="coverInput">Modifier la bannière</label>
+        <input id="coverInput" type="file" accept="image/*,video/*" hidden>
+      </section>
 
-        <button
-          class="primary-btn"
-          id="editProfileBtn"
-        >
-          Modifier le profil
-        </button>
+      <section class="profile-head">
+        <label class="avatar-wrap" for="avatarInput" title="Modifier la photo de profil">
+          <img id="avatarImg" alt="Photo de profil">
+          <video id="avatarVideo" muted loop playsinline></video>
+          <span class="avatar-placeholder">👤</span>
+          <span class="avatar-plus">+</span>
+        </label>
 
-        <button
-          class="secondary-btn"
-          id="shareBtn"
-        >
-          Partager le profil
-        </button>
+        <input id="avatarInput" type="file" accept="image/*,video/*" hidden>
 
+        <div class="profile-main">
+          <div class="username-row">
+            <h1 id="username"></h1>
+            <span class="verified">✓</span>
+          </div>
+
+          <div class="profile-actions">
+            <button class="primary-btn" id="editProfileBtn" type="button">Modifier le profil</button>
+            <button class="secondary-btn" id="shareBtn" type="button">Partager le profil</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats">
+        <div><strong id="postCount">0</strong><span>publications</span></div>
+        <div><strong id="followers">0</strong><span>abonnés</span></div>
+        <div><strong id="following">0</strong><span>abonnements</span></div>
+      </section>
+
+      <section class="bio">
+        <strong id="displayName"></strong>
+        <p id="bioText"></p>
+        <a id="bioLink" href="#" target="_blank" rel="noopener"></a>
+      </section>
+
+      <nav class="tabs" aria-label="Publications">
+        <button class="tab active" type="button" data-filter="all" aria-label="Toutes les publications">▦</button>
+        <button class="tab" type="button" data-filter="image" aria-label="Photos">▧</button>
+        <button class="tab" type="button" data-filter="video" aria-label="Vidéos">▶</button>
+      </nav>
+
+      <section class="grid" id="postGrid"></section>
+      <div class="empty" id="emptyState">Aucune publication.</div>
+    </main>
+
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Changer le thème">☾</button>
+
+    <dialog class="dialog" id="profileDialog">
+      <form id="profileForm">
+        <div class="dialog-head">
+          <h2>Modifier le profil</h2>
+          <button type="button" class="close" id="profileDialogClose" aria-label="Fermer">×</button>
+        </div>
+
+        <label>Nom<input id="nameInput" maxlength="40"></label>
+        <label>Nom d'utilisateur<input id="usernameInput" maxlength="30"></label>
+        <label>Bio<textarea id="bioInput" maxlength="150"></textarea></label>
+        <label>Lien<input id="linkInput" type="url" placeholder="https://..."></label>
+
+        <div class="dialog-actions">
+          <button type="button" class="secondary-btn" id="profileCancelBtn">Annuler</button>
+          <button type="submit" class="primary-btn">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
+
+    <input id="postInput" type="file" accept="image/*,video/*" hidden>
+
+    <div class="viewer" id="viewer" aria-hidden="true">
+      <button class="viewer-close" id="viewerClose" type="button" aria-label="Fermer">×</button>
+      <button class="viewer-prev" id="viewerPrev" type="button" aria-label="Précédent">‹</button>
+      <div class="viewer-content" id="viewerContent"></div>
+      <button class="viewer-next" id="viewerNext" type="button" aria-label="Suivant">›</button>
+      <div class="viewer-caption" id="viewerCaption"></div>
+    </div>
+
+    <div class="upload-progress" id="uploadProgress">
+      <div class="upload-progress-text" id="uploadProgressText">Envoi… 0%</div>
+      <div class="upload-progress-bar">
+        <div class="upload-progress-fill" id="uploadProgressFill"></div>
       </div>
-
     </div>
-
-  </section>
-
-
-  <!-- STATISTIQUES -->
-  <section class="stats">
-
-    <div>
-      <strong id="postCount">0</strong>
-      <span>publications</span>
-    </div>
-
-    <div>
-      <strong id="followers">0</strong>
-      <span>abonnés</span>
-    </div>
-
-    <div>
-      <strong id="following">0</strong>
-      <span>abonnements</span>
-    </div>
-
-  </section>
-
-
-  <!-- BIO -->
-  <section class="bio">
-
-    <strong id="displayName">
-      farouk abu anas
-    </strong>
-
-    <p id="bioText">
-      j'aime trop les salope 🔥🌹
-    </p>
-
-    <a
-      id="bioLink"
-      href="#"
-      target="_blank"
-      rel="noopener"
-    ></a>
-
-  </section>
-
-
-  <!-- ONGLETS -->
-  <nav
-    class="tabs"
-    aria-label="Publications"
-  >
-
-    <button
-      class="tab active"
-      data-filter="all"
-      aria-label="Toutes les publications"
-    >
-      ▦
-    </button>
-
-    <button
-      class="tab"
-      data-filter="image"
-      aria-label="Photos"
-    >
-      ▧
-    </button>
-
-    <button
-      class="tab"
-      data-filter="video"
-      aria-label="Vidéos"
-    >
-      ▶
-    </button>
-
-  </nav>
-
-
-  <!-- PUBLICATIONS -->
-  <section
-    class="grid"
-    id="postGrid"
-  ></section>
-
-  <div
-    class="empty"
-    id="emptyState"
-  >
-    Aucune publication.
   </div>
 
-</main>
+  <div class="toast" id="toast"></div>
 
-
-<!-- THÈME -->
-<button
-  class="theme-btn"
-  id="themeBtn"
-  aria-label="Changer le thème"
->
-  ☾
-</button>
-
-
-<!-- MODIFICATION DU PROFIL -->
-<dialog
-  class="dialog"
-  id="profileDialog"
->
-
-  <form
-    method="dialog"
-    id="profileForm"
-  >
-
-    <div class="dialog-head">
-
-      <h2>
-        Modifier le profil
-      </h2>
-
-      <button
-        value="cancel"
-        class="close"
-      >
-        ×
-      </button>
-
-    </div>
-
-
-    <label>
-      Nom
-
-      <input
-        id="nameInput"
-        maxlength="40"
-      >
-
-    </label>
-
-
-    <label>
-      Nom d'utilisateur
-
-      <input
-        id="usernameInput"
-        maxlength="30"
-      >
-
-    </label>
-
-
-    <label>
-      Bio
-
-      <textarea
-        id="bioInput"
-        maxlength="150"
-      ></textarea>
-
-    </label>
-
-
-    <label>
-      Lien
-
-      <input
-        id="linkInput"
-        type="url"
-        placeholder="https://..."
-      >
-
-    </label>
-
-
-    <div class="dialog-actions">
-
-      <button
-        value="cancel"
-        class="secondary-btn"
-      >
-        Annuler
-      </button>
-
-      <button
-        value="default"
-        class="primary-btn"
-      >
-        Enregistrer
-      </button>
-
-    </div>
-
-  </form>
-
-</dialog>
-
-
-<!-- AJOUT DE PUBLICATION -->
-<input
-  id="postInput"
-  type="file"
-  accept="image/*,video/*"
-  hidden
->
-
-
-<!-- VISIONNEUSE -->
-<div
-  class="viewer"
-  id="viewer"
-  aria-hidden="true"
->
-
-  <button
-    class="viewer-close"
-    id="viewerClose"
-    aria-label="Fermer"
-  >
-    ×
-  </button>
-
-  <button
-    class="viewer-prev"
-    id="viewerPrev"
-    aria-label="Précédent"
-  >
-    ‹
-  </button>
-
-  <div
-    class="viewer-content"
-    id="viewerContent"
-  ></div>
-
-  <button
-    class="viewer-next"
-    id="viewerNext"
-    aria-label="Suivant"
-  >
-    ›
-  </button>
-
-  <div
-    class="viewer-caption"
-    id="viewerCaption"
-  ></div>
-
-</div>
-
-
-<!-- PROGRESSION -->
-<div
-  class="upload-progress"
-  id="uploadProgress"
->
-
-  <div
-    class="upload-progress-text"
-    id="uploadProgressText"
-  >
-    Envoi… 0%
-  </div>
-
-  <div class="upload-progress-bar">
-
-    <div
-      class="upload-progress-fill"
-      id="uploadProgressFill"
-    ></div>
-
-  </div>
-
-</div>
-
-
-<!-- MESSAGE -->
-<div
-  class="toast"
-  id="toast"
-></div>
-
-</div>
-
-<!-- SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- INSTAQ SCRIPT -->
-<script src="./script.js?v=6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./script.js?v=8"></script>
 </body>
-    </html>
+</html>
