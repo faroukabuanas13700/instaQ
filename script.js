@@ -4547,6 +4547,390 @@ async function showProfileInterface() {
     );
 }
 /* =========================================================
+RECHERCHE EXPLORER
+========================================================= */
+
+let exploreSearchTimer = null;
+
+
+async function searchExplore(query) {
+
+  if (!supabaseReady()) {
+    return;
+  }
+
+  const resultsBox =
+    $("#exploreSearchResults");
+
+  if (!resultsBox) {
+    return;
+  }
+
+  const search =
+    query.trim();
+
+
+  /* AUCUNE RECHERCHE */
+  if (!search) {
+
+    resultsBox.innerHTML = "";
+
+    resultsBox.classList.remove(
+      "show"
+    );
+
+    renderExploreGrid(
+      explorePosts
+    );
+
+    return;
+  }
+
+
+  /* =====================================================
+  RECHERCHE HASHTAG
+  ===================================================== */
+
+  if (search.startsWith("#")) {
+
+    const tag =
+      search
+        .replace(/^#+/, "")
+        .trim();
+
+
+    if (!tag) {
+      return;
+    }
+
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("posts")
+          .select(
+            "id,user_id,type,media_url,caption,likes"
+          )
+          .ilike(
+            "caption",
+            `%#${tag}%`
+          )
+          .order(
+            "id",
+            {
+              ascending: false
+            }
+          )
+          .limit(100);
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      const hashtagPosts =
+        (data || []).map(
+          post => ({
+            id:
+              post.id,
+
+            userId:
+              post.user_id,
+
+            type:
+              post.type ||
+              "image",
+
+            src:
+              post.media_url,
+
+            caption:
+              post.caption ||
+              "",
+
+            likes:
+              post.likes ||
+              0
+          })
+        );
+
+
+      resultsBox.innerHTML =
+        `
+        <div class="explore-hashtag-result">
+          #${tag}
+          <span>
+            ${hashtagPosts.length} publication(s)
+          </span>
+        </div>
+        `;
+
+
+      resultsBox.classList.add(
+        "show"
+      );
+
+
+      renderExploreGrid(
+        hashtagPosts
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Erreur recherche hashtag :",
+        error
+      );
+
+    }
+
+
+    return;
+  }
+
+
+  /* =====================================================
+  RECHERCHE UTILISATEURS
+  ===================================================== */
+
+  if (search.length < 2) {
+
+    resultsBox.innerHTML = "";
+
+    resultsBox.classList.remove(
+      "show"
+    );
+
+    return;
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,avatar_url"
+        )
+        .or(
+          `username.ilike.%${search}%,name.ilike.%${search}%`
+        )
+        .limit(20);
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    resultsBox.innerHTML = "";
+
+
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      resultsBox.innerHTML =
+        `
+        <div class="search-empty">
+          Aucun utilisateur trouvé
+        </div>
+        `;
+
+      resultsBox.classList.add(
+        "show"
+      );
+
+      return;
+    }
+
+
+    data.forEach(
+      profile => {
+
+        const row =
+          document.createElement(
+            "div"
+          );
+
+
+        row.className =
+          "explore-user-result";
+
+
+        const avatar =
+          document.createElement(
+            "div"
+          );
+
+
+        avatar.className =
+          "explore-user-avatar";
+
+
+        if (profile.avatar_url) {
+
+          const img =
+            document.createElement(
+              "img"
+            );
+
+          img.src =
+            profile.avatar_url;
+
+          img.alt =
+            profile.username ||
+            "";
+
+          avatar.appendChild(
+            img
+          );
+
+        } else {
+
+          avatar.textContent =
+            "👤";
+
+        }
+
+
+        const text =
+          document.createElement(
+            "div"
+          );
+
+
+        text.className =
+          "explore-user-text";
+
+
+        const username =
+          document.createElement(
+            "div"
+          );
+
+
+        username.className =
+          "explore-user-username";
+
+
+        username.textContent =
+          profile.username ||
+          "Utilisateur";
+
+
+        const name =
+          document.createElement(
+            "div"
+          );
+
+
+        name.className =
+          "explore-user-name";
+
+
+        name.textContent =
+          profile.name ||
+          "";
+
+
+        text.appendChild(
+          username
+        );
+
+        text.appendChild(
+          name
+        );
+
+
+        row.appendChild(
+          avatar
+        );
+
+        row.appendChild(
+          text
+        );
+
+
+        row.addEventListener(
+          "click",
+          async () => {
+
+            await showProfileInterface();
+
+            await openUserProfile(
+              profile.id
+            );
+
+          }
+        );
+
+
+        resultsBox.appendChild(
+          row
+        );
+
+      }
+    );
+
+
+    resultsBox.classList.add(
+      "show"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur recherche Explorer :",
+      error
+    );
+
+  }
+
+}
+
+
+$("#exploreSearchInput")
+  ?.addEventListener(
+    "input",
+    event => {
+
+      clearTimeout(
+        exploreSearchTimer
+      );
+
+
+      const value =
+        event.target.value;
+
+
+      exploreSearchTimer =
+        setTimeout(
+          () => {
+
+            searchExplore(
+              value
+            );
+
+          },
+          300
+        );
+
+    }
+  );
+/* =========================================================
 NAVIGATION BAS
 ========================================================= */
 
