@@ -1244,3 +1244,27 @@ DESKTOP
   }
 
 }
+/* =========================================================
+ABONNEMENTS
+========================================================= */
+
+.follow-btn{
+  height:34px;
+  border:0;
+  border-radius:8px;
+  background:#0095f6;
+  color:#fff;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.follow-btn.following{
+  background:#363636;
+  color:#fff;
+}
+
+.follow-btn:disabled{
+  opacity:.65;
+  cursor:wait;
+}
