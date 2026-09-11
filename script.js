@@ -988,9 +988,9 @@ function renderProfile() {
     state.profile.username
       ? (
         state.profile.username +
-        " — InstaQ"
+        " — extaze"
       )
-      : "InstaQ";
+      : "extaze";
 
 }
 
