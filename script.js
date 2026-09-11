@@ -2988,7 +2988,8 @@ RECHERCHE UTILISATEURS
 
 let viewingOtherProfile =
   false;
-
+let activeProfileId =
+  null;
 
 function setOwnerMode(
   isOwner
@@ -3011,7 +3012,8 @@ function setOwnerMode(
 
   const avatarWrap =
     $(".avatar-wrap");
-
+const followBtn =
+  $("#followBtn");
 
   if (addPostBtn) {
 
@@ -3079,7 +3081,10 @@ function setOwnerMode(
         : "none";
 
   }
-
+if (followBtn) {
+  followBtn.hidden =
+    isOwner;
+    }
 }
 
 
