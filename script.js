@@ -3083,26 +3083,40 @@ $("#reelsShareBtn")
 $("#reelsLikeBtn")
   ?.addEventListener(
     "click",
-    () => {
+    async () => {
 
       if (!currentReelPost) {
         return;
       }
 
+      await like(
+        currentReelPost.id,
+        false
+      );
+
+      await refreshPostLikes(
+        currentReelPost.id
+      );
+
+      const reelPost =
+        explorePosts.find(
+          post =>
+            post.id ==
+            currentReelPost.id
+        );
+
+      const total =
+        reelPost?.likes ??
+        currentReelPost.likes ??
+        0;
 
       currentReelPost.likes =
-        (
-          currentReelPost.likes ||
-          0
-        ) + 1;
-
+        total;
 
       if ($("#reelsLikeCount")) {
-
         $("#reelsLikeCount")
           .textContent =
-          currentReelPost.likes;
-
+          formatLikes(total);
       }
 
     }
