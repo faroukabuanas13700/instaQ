@@ -2717,59 +2717,8 @@ async function like(
 
       state.liked[id] =
         true;
-/* Créer la notification du like */
 
-const {
-  data: likedPost,
-  error: likedPostError
-} =
-  await supabaseClient
-    .from("posts")
-    .select("id,user_id")
-    .eq("id", id)
-    .single();
-
-if (
-  !likedPostError &&
-  likedPost &&
-  likedPost.user_id &&
-  likedPost.user_id !== currentUser.id
-) {
-
-  const {
-    error: notificationError
-  } =
-    await supabaseClient
-      .from("notifications")
-      .insert({
-        recipient_id:
-          likedPost.user_id,
-
-        actor_id:
-          currentUser.id,
-
-        post_id:
-          id,
-
-        type:
-          "like",
-
-        message:
-          "a aimé votre publication",
-
-        is_read:
-          false
-      });
-
-  if (notificationError) {
-    console.error(
-      "Erreur notification like :",
-      notificationError
-    );
   }
-
-}
-    }
 
 
     await refreshPostLikes(
