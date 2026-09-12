@@ -952,7 +952,21 @@ function renderProfile() {
 
   }
 
+if ($("#totalLikes")) {
 
+  const totalLikes =
+    state.posts.reduce(
+      (total, post) =>
+        total +
+        (Number(post.likes) || 0),
+      0
+    );
+
+  $("#totalLikes")
+    .textContent =
+    formatLikes(totalLikes);
+
+}
   const bioLink =
     $("#bioLink");
 
