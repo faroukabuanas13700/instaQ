@@ -1772,8 +1772,7 @@ function mediaElement(
       video.autoplay =
         true;
 
-      video.setAttribute(
-        "autoplay",
+      video.setAttributasync      "autoplay",
         ""
       );
 
@@ -2607,79 +2606,98 @@ REELS
 
 let currentReelPost = null;
 
-async function openReels(post) {
 
-  const page =
-    $("#reelsPage");
+      async function openReels(post) {
 
-  const video =
-    $("#reelsVideo");
+  console.log("Ouverture Reel :", post);
 
-  if (
-    !page ||
-    !video ||
-    !post
-  ) {
+  const page = document.getElementById("reelsPage");
+  const video = document.getElementById("reelsVideo");
+
+  if (!page) {
+    console.error("reelsPage introuvable");
+    toast("Erreur : page Reels introuvable");
     return;
   }
 
-  currentReelPost =
-    post;
+  if (!video) {
+    console.error("reelsVideo introuvable");
+    toast("Erreur : lecteur vidéo introuvable");
+    return;
+  }
 
-  page.hidden =
-    false;
+  if (!post || !post.src) {
+    console.error("Vidéo invalide :", post);
+    toast("Impossible de charger cette vidéo");
+    return;
+  }
 
-  document.body.style.overflow =
-    "hidden";
+  currentReelPost = post;
 
+  page.hidden = false;
+  page.removeAttribute("hidden");
 
-  video.pause();
+  page.style.display = "flex";
+  page.style.position = "fixed";
+  page.style.inset = "0";
+  page.style.zIndex = "99999";
 
-  video.removeAttribute(
-    "controls"
+  document.body.style.overflow = "hidden";
+
+  try {
+    video.pause();
+  } catch {}
+
+  video.controls = false;
+  video.removeAttribute("controls");
+
+  video.src = post.src;
+  video.loop = true;
+  video.playsInline = true;
+
+  video.setAttribute(
+    "playsinline",
+    ""
   );
 
-  video.controls =
-    false;
+  video.setAttribute(
+    "webkit-playsinline",
+    ""
+  );
 
-  video.src =
-    post.src;
+  video.muted = true;
 
-  video.loop =
-    true;
+  video.load();
 
-  video.playsInline =
-    true;
+  const likeCount =
+    document.getElementById(
+      "reelsLikeCount"
+    );
 
-  video.muted =
-    false;
-
-
-  if ($("#reelsLikeCount")) {
-
-    $("#reelsLikeCount")
-      .textContent =
+  if (likeCount) {
+    likeCount.textContent =
       post.likes || 0;
-
   }
 
+  const caption =
+    document.getElementById(
+      "reelsCaption"
+    );
 
-  if ($("#reelsCaption")) {
-
-    $("#reelsCaption")
-      .textContent =
+  if (caption) {
+    caption.textContent =
       post.caption || "";
-
   }
-
 
   const profileId =
     post.userId ||
     activeProfileId ||
     currentUser?.id;
 
-
-  if (profileId) {
+  if (
+    profileId &&
+    supabaseClient
+  ) {
 
     try {
 
@@ -2698,28 +2716,30 @@ async function openReels(post) {
           )
           .single();
 
+      if (
+        !error &&
+        profile
+      ) {
 
-      if (!error && profile) {
+        const username =
+          document.getElementById(
+            "reelsUsername"
+          );
 
-        if ($("#reelsUsername")) {
-
-          $("#reelsUsername")
-            .textContent =
+        if (username) {
+          username.textContent =
             profile.username ||
             "Utilisateur";
-
         }
 
-
         const avatar =
-          $("#reelsAvatar");
-
+          document.getElementById(
+            "reelsAvatar"
+          );
 
         if (avatar) {
 
-          avatar.innerHTML =
-            "";
-
+          avatar.innerHTML = "";
 
           if (profile.avatar_url) {
 
@@ -2760,42 +2780,39 @@ async function openReels(post) {
 
   }
 
-
   try {
 
     await video.play();
 
   } catch (error) {
 
-    /*
-    Si le navigateur refuse le son
-    automatique, on démarre en muet.
-    */
-
-    video.muted =
-      true;
-
-    video
-      .play()
-      .catch(() => {});
+    console.error(
+      "Erreur lecture Reel :",
+      error
+    );
 
   }
 
 }
 
-
 function closeReels() {
 
   const page =
-    $("#reelsPage");
+    document.getElementById(
+      "reelsPage"
+    );
 
   const video =
-    $("#reelsVideo");
+    document.getElementById(
+      "reelsVideo"
+    );
 
 
   if (video) {
 
-    video.pause();
+    try {
+      video.pause();
+    } catch {}
 
     video.removeAttribute(
       "src"
@@ -2808,8 +2825,15 @@ function closeReels() {
 
   if (page) {
 
-    page.hidden =
-      true;
+    page.hidden = true;
+
+    page.setAttribute(
+      "hidden",
+      ""
+    );
+
+    page.style.display =
+      "none";
 
   }
 
@@ -2821,13 +2845,12 @@ function closeReels() {
     null;
 
 }
-
-
 $("#reelsBackBtn")
   ?.addEventListener(
     "click",
     closeReels
   );
+  
 
 
 $("#reelsVideo")
