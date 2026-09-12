@@ -6536,7 +6536,9 @@ async function showHomeFeed() {
 /* =========================================================
 PAGE NOTIFICATIONS
 ========================================================= */
-async function loadNotifications() {
+
+
+        async function loadNotifications() {
 
   if (
     !supabaseReady() ||
@@ -6560,6 +6562,8 @@ async function loadNotifications() {
 
   try {
 
+    /* CHARGER LES NOTIFICATIONS */
+
     const {
       data: notifications,
       error
@@ -6575,79 +6579,142 @@ async function loadNotifications() {
         )
         .order(
           "created_at",
-          { ascending: false }
+          {
+            ascending: false
+          }
         )
         .limit(100);
 
     if (error) {
+
+      console.error(
+        "Erreur requête notifications :",
+        error
+      );
+
       throw error;
     }
 
+
     if (
       !notifications ||
-      !notifications.length
+      notifications.length === 0
     ) {
+
+      empty.textContent =
+        "Aucune notification pour le moment.";
+
       empty.hidden = false;
+
       return;
     }
+
+
+    /* CHARGER LES PROFILS */
 
     const actorIds =
       [
         ...new Set(
           notifications
-            .map(item => item.actor_id)
+            .map(
+              notification =>
+                notification.actor_id
+            )
             .filter(Boolean)
         )
       ];
+
+    let profiles = [];
+
+
+    if (actorIds.length) {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("profiles")
+          .select(
+            "id,username,name,avatar_url"
+          )
+          .in(
+            "id",
+            actorIds
+          );
+
+
+      if (error) {
+
+        console.error(
+          "Erreur profils notifications :",
+          error
+        );
+
+      } else {
+
+        profiles =
+          data || [];
+
+      }
+
+    }
+
+
+    /* CHARGER LES PUBLICATIONS */
 
     const postIds =
       [
         ...new Set(
           notifications
-            .map(item => item.post_id)
+            .map(
+              notification =>
+                notification.post_id
+            )
             .filter(Boolean)
         )
       ];
 
-    const {
-      data: profiles,
-      error: profilesError
-    } =
-      await supabaseClient
-        .from("profiles")
-        .select(
-          "id,username,name,avatar_url"
-        )
-        .in(
-          "id",
-          actorIds
+    let posts = [];
+
+
+    if (postIds.length) {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("posts")
+          .select(
+            "id,user_id,type,media_url,caption"
+          )
+          .in(
+            "id",
+            postIds
+          );
+
+
+      if (error) {
+
+        console.error(
+          "Erreur publications notifications :",
+          error
         );
 
-    if (profilesError) {
-      throw profilesError;
+      } else {
+
+        posts =
+          data || [];
+
+      }
+
     }
 
-    const {
-      data: posts,
-      error: postsError
-    } =
-      await supabaseClient
-        .from("posts")
-        .select(
-          "id,type,media_url"
-        )
-        .in(
-          "id",
-          postIds
-        );
-
-    if (postsError) {
-      throw postsError;
-    }
 
     const profilesMap =
       new Map(
-        (profiles || []).map(
+        profiles.map(
           profile => [
             profile.id,
             profile
@@ -6655,15 +6722,19 @@ async function loadNotifications() {
         )
       );
 
+
     const postsMap =
       new Map(
-        (posts || []).map(
+        posts.map(
           post => [
-            post.id,
+            String(post.id),
             post
           ]
         )
       );
+
+
+    /* AFFICHER LES NOTIFICATIONS */
 
     notifications.forEach(
       notification => {
@@ -6673,10 +6744,14 @@ async function loadNotifications() {
             notification.actor_id
           );
 
+
         const post =
           postsMap.get(
-            notification.post_id
+            String(
+              notification.post_id
+            )
           );
+
 
         const item =
           document.createElement(
@@ -6686,11 +6761,17 @@ async function loadNotifications() {
         item.className =
           "notification-item";
 
+
         if (!notification.is_read) {
+
           item.classList.add(
             "unread"
           );
+
         }
+
+
+        /* AVATAR */
 
         const avatar =
           document.createElement(
@@ -6699,6 +6780,7 @@ async function loadNotifications() {
 
         avatar.className =
           "notification-avatar";
+
 
         if (profile?.avatar_url) {
 
@@ -6711,15 +6793,22 @@ async function loadNotifications() {
             profile.avatar_url;
 
           img.alt =
-            profile.username || "";
+            profile.username ||
+            "";
 
-          avatar.appendChild(img);
+          avatar.appendChild(
+            img
+          );
 
         } else {
 
-          avatar.textContent = "👤";
+          avatar.textContent =
+            "👤";
 
         }
+
+
+        /* TEXTE */
 
         const text =
           document.createElement(
@@ -6728,6 +6817,7 @@ async function loadNotifications() {
 
         text.className =
           "notification-text";
+
 
         const username =
           document.createElement(
@@ -6741,6 +6831,7 @@ async function loadNotifications() {
           profile?.username ||
           "Utilisateur";
 
+
         const message =
           document.createElement(
             "span"
@@ -6750,11 +6841,27 @@ async function loadNotifications() {
           " " +
           (
             notification.message ||
-            "a aimé votre publication"
+            (
+              notification.type ===
+                "comment"
+
+                ? "a commenté votre publication"
+
+                : "a aimé votre publication"
+            )
           );
 
-        text.appendChild(username);
-        text.appendChild(message);
+
+        text.appendChild(
+          username
+        );
+
+        text.appendChild(
+          message
+        );
+
+
+        /* MINIATURE PUBLICATION */
 
         const cover =
           document.createElement(
@@ -6764,9 +6871,13 @@ async function loadNotifications() {
         cover.className =
           "notification-post-cover";
 
+
         if (post?.media_url) {
 
-          if (post.type === "video") {
+          if (
+            post.type ===
+            "video"
+          ) {
 
             const video =
               document.createElement(
@@ -6776,11 +6887,18 @@ async function loadNotifications() {
             video.src =
               post.media_url;
 
-            video.muted = true;
-            video.playsInline = true;
-            video.preload = "metadata";
+            video.muted =
+              true;
 
-            cover.appendChild(video);
+            video.playsInline =
+              true;
+
+            video.preload =
+              "metadata";
+
+            cover.appendChild(
+              video
+            );
 
           } else {
 
@@ -6795,20 +6913,110 @@ async function loadNotifications() {
             img.alt =
               "Publication";
 
-            cover.appendChild(img);
+            cover.appendChild(
+              img
+            );
 
           }
 
         }
 
-        item.appendChild(avatar);
-        item.appendChild(text);
-        item.appendChild(cover);
 
-        list.appendChild(item);
+        /* CLIC SUR LA NOTIFICATION */
+
+        item.addEventListener(
+          "click",
+          async () => {
+
+            try {
+
+              await supabaseClient
+                .from("notifications")
+                .update({
+                  is_read: true
+                })
+                .eq(
+                  "id",
+                  notification.id
+                );
+
+            } catch (error) {
+
+              console.error(
+                "Erreur notification lue :",
+                error
+              );
+
+            }
+
+
+            if (post) {
+
+              if (
+                post.type ===
+                "video"
+              ) {
+
+                openReels({
+                  id:
+                    post.id,
+
+                  userId:
+                    post.user_id,
+
+                  type:
+                    post.type,
+
+                  src:
+                    post.media_url,
+
+                  caption:
+                    post.caption || "",
+
+                  likes:
+                    0
+                });
+
+              } else {
+
+                await showProfileInterface();
+
+                await openUserProfile(
+                  post.user_id
+                );
+
+                openViewer(
+                  post.id
+                );
+
+              }
+
+            }
+
+          }
+        );
+
+
+        item.appendChild(
+          avatar
+        );
+
+        item.appendChild(
+          text
+        );
+
+        item.appendChild(
+          cover
+        );
+
+
+        list.appendChild(
+          item
+        );
 
       }
     );
+
 
   } catch (error) {
 
@@ -6820,11 +7028,15 @@ async function loadNotifications() {
     empty.textContent =
       "Impossible de charger les notifications.";
 
-    empty.hidden = false;
+    empty.hidden =
+      false;
 
   }
 
 }
+
+
+
 async function showNotificationsPage() {
 
   const notificationsPage =
@@ -6839,36 +7051,63 @@ async function showNotificationsPage() {
   const explorePage =
     $("#explorePage");
 
+  const followListPage =
+    $("#followListPage");
+
   const topbar =
     $(".topbar");
 
+
   if (homeFeedPage) {
-    homeFeedPage.hidden = true;
+    homeFeedPage.hidden =
+      true;
   }
+
 
   if (profilePage) {
-    profilePage.hidden = true;
+    profilePage.hidden =
+      true;
   }
+
 
   if (explorePage) {
-    explorePage.hidden = true;
+    explorePage.hidden =
+      true;
   }
+
+
+  if (followListPage) {
+    followListPage.hidden =
+      true;
+  }
+
 
   if (topbar) {
-    topbar.style.display = "none";
+
+    topbar.style.display =
+      "none";
+
   }
 
+
   if (notificationsPage) {
-    notificationsPage.hidden = false;
+
+    notificationsPage.hidden =
+      false;
+
   }
-await loadNotifications();
+
+
+  await loadNotifications();
+
+
   window.scrollTo({
     top: 0,
     behavior: "smooth"
   });
 
 }
-
+  
 
 $("#notificationsBtn")
   ?.addEventListener(
