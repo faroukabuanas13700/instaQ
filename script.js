@@ -1723,7 +1723,38 @@ $("#coverInput")
 /* =========================================================
 PUBLICATIONS
 ========================================================= */
+function formatLikes(number) {
 
+  number = Number(number) || 0;
+
+  if (number >= 1000000) {
+    const value = number / 1000000;
+
+    return (
+      (value >= 10
+        ? Math.floor(value)
+        : Math.floor(value * 10) / 10
+      )
+      .toString()
+      .replace(".", ",") + "M"
+    );
+  }
+
+  if (number >= 1000) {
+    const value = number / 1000;
+
+    return (
+      (value >= 10
+        ? Math.floor(value)
+        : Math.floor(value * 10) / 10
+      )
+      .toString()
+      .replace(".", ",") + "K"
+    );
+  }
+
+  return number.toString();
+}
 function mediaElement(
   post,
   forViewer = false
@@ -1980,12 +2011,9 @@ function renderGrid() {
         "like-badge";
 
 
-      likeBadge.textContent =
-        "♥ " +
-        (
-          post.likes ||
-          0
-        );
+      likeBadge.innerHTML =
+  `<span class="profile-like-heart">♡</span>
+   <span class="profile-like-number">${formatLikes(post.likes)}</span>`;
 
 
       card.appendChild(
