@@ -2038,9 +2038,19 @@ function renderGrid() {
                 300
               ) {
 
-                openViewer(
-                  post.id
-                );
+                if (
+  post.type === "video"
+) {
+
+  openReels(post);
+
+} else {
+
+  openViewer(
+    post.id
+  );
+
+}
 
               }
 
@@ -2591,7 +2601,319 @@ function like(
 
 }
 
+/* =========================================================
+REELS
+========================================================= */
 
+let currentReelPost = null;
+
+async function openReels(post) {
+
+  const page =
+    $("#reelsPage");
+
+  const video =
+    $("#reelsVideo");
+
+  if (
+    !page ||
+    !video ||
+    !post
+  ) {
+    return;
+  }
+
+  currentReelPost =
+    post;
+
+  page.hidden =
+    false;
+
+  document.body.style.overflow =
+    "hidden";
+
+
+  video.pause();
+
+  video.removeAttribute(
+    "controls"
+  );
+
+  video.controls =
+    false;
+
+  video.src =
+    post.src;
+
+  video.loop =
+    true;
+
+  video.playsInline =
+    true;
+
+  video.muted =
+    false;
+
+
+  if ($("#reelsLikeCount")) {
+
+    $("#reelsLikeCount")
+      .textContent =
+      post.likes || 0;
+
+  }
+
+
+  if ($("#reelsCaption")) {
+
+    $("#reelsCaption")
+      .textContent =
+      post.caption || "";
+
+  }
+
+
+  const profileId =
+    post.userId ||
+    activeProfileId ||
+    currentUser?.id;
+
+
+  if (profileId) {
+
+    try {
+
+      const {
+        data: profile,
+        error
+      } =
+        await supabaseClient
+          .from("profiles")
+          .select(
+            "id,username,name,avatar_url"
+          )
+          .eq(
+            "id",
+            profileId
+          )
+          .single();
+
+
+      if (!error && profile) {
+
+        if ($("#reelsUsername")) {
+
+          $("#reelsUsername")
+            .textContent =
+            profile.username ||
+            "Utilisateur";
+
+        }
+
+
+        const avatar =
+          $("#reelsAvatar");
+
+
+        if (avatar) {
+
+          avatar.innerHTML =
+            "";
+
+
+          if (profile.avatar_url) {
+
+            const img =
+              document.createElement(
+                "img"
+              );
+
+            img.src =
+              profile.avatar_url;
+
+            img.alt =
+              profile.username || "";
+
+            avatar.appendChild(
+              img
+            );
+
+          } else {
+
+            avatar.textContent =
+              "👤";
+
+          }
+
+        }
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Erreur profil Reel :",
+        error
+      );
+
+    }
+
+  }
+
+
+  try {
+
+    await video.play();
+
+  } catch (error) {
+
+    /*
+    Si le navigateur refuse le son
+    automatique, on démarre en muet.
+    */
+
+    video.muted =
+      true;
+
+    video
+      .play()
+      .catch(() => {});
+
+  }
+
+}
+
+
+function closeReels() {
+
+  const page =
+    $("#reelsPage");
+
+  const video =
+    $("#reelsVideo");
+
+
+  if (video) {
+
+    video.pause();
+
+    video.removeAttribute(
+      "src"
+    );
+
+    video.load();
+
+  }
+
+
+  if (page) {
+
+    page.hidden =
+      true;
+
+  }
+
+
+  document.body.style.overflow =
+    "";
+
+  currentReelPost =
+    null;
+
+}
+
+
+$("#reelsBackBtn")
+  ?.addEventListener(
+    "click",
+    closeReels
+  );
+
+
+$("#reelsVideo")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      const video =
+        $("#reelsVideo");
+
+      if (!video) {
+        return;
+      }
+
+
+      if (video.paused) {
+
+        video
+          .play()
+          .catch(() => {});
+
+      } else {
+
+        video.pause();
+
+      }
+
+    }
+  );
+
+
+$("#reelsShareBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await navigator.clipboard
+          .writeText(
+            location.href
+          );
+
+        toast(
+          "Lien copié"
+        );
+
+      } catch {
+
+        toast(
+          "Impossible de copier le lien"
+        );
+
+      }
+
+    }
+  );
+
+
+$("#reelsLikeBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      if (!currentReelPost) {
+        return;
+      }
+
+
+      currentReelPost.likes =
+        (
+          currentReelPost.likes ||
+          0
+        ) + 1;
+
+
+      if ($("#reelsLikeCount")) {
+
+        $("#reelsLikeCount")
+          .textContent =
+          currentReelPost.likes;
+
+      }
+
+    }
+  );
 /* =========================================================
 VISIONNEUSE
 ========================================================= */
@@ -4546,19 +4868,32 @@ function renderExploreGrid(posts) {
       }
 
       card.addEventListener(
-        "click",
-        async () => {
+  "click",
+  async () => {
 
-          if (post.userId) {
-            await showProfileInterface();
+    if (
+      post.type === "video"
+    ) {
 
-            await openUserProfile(
-              post.userId
-            );
-          }
-
-        }
+      await openReels(
+        post
       );
+
+      return;
+    }
+
+    if (post.userId) {
+
+      await showProfileInterface();
+
+      await openUserProfile(
+        post.userId
+      );
+
+    }
+
+  }
+);
 
       grid.appendChild(
         card
