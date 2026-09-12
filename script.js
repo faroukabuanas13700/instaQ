@@ -7020,18 +7020,21 @@ PAGE NOTIFICATIONS
 
   } catch (error) {
 
-    console.error(
-      "Erreur chargement notifications :",
-      error
+  console.error(
+    "Erreur chargement notifications :",
+    error
+  );
+
+  empty.textContent =
+    "ERREUR SUPABASE : " +
+    (
+      error?.message ||
+      error?.details ||
+      error?.hint ||
+      JSON.stringify(error)
     );
 
-    empty.textContent =
-      "Impossible de charger les notifications.";
-
-    empty.hidden =
-      false;
-
-  }
+  empty.hidden = false;
 
 }
 
