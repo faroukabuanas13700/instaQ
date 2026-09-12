@@ -2223,3 +2223,123 @@ FIL D'ACTUALITÉ
   }
 
 }
+/* =========================================================
+NOTIFICATIONS
+========================================================= */
+
+.notifications-page{
+  position:fixed;
+  inset:0;
+  z-index:400;
+  background:#080b0f;
+  color:#fff;
+  overflow-y:auto;
+  padding-bottom:70px;
+}
+
+.notifications-header{
+  position:sticky;
+  top:0;
+  z-index:5;
+  height:64px;
+  display:grid;
+  grid-template-columns:55px 1fr 55px;
+  align-items:center;
+  background:#080b0f;
+  border-bottom:1px solid #1d2127;
+  padding:0 8px;
+}
+
+.notifications-header h2{
+  margin:0;
+  font-size:21px;
+  font-weight:700;
+}
+
+.notifications-back-btn{
+  border:0;
+  background:transparent;
+  color:#fff;
+  font-size:34px;
+  cursor:pointer;
+  padding:0;
+  text-align:left;
+}
+
+.notifications-header-space{
+  width:55px;
+}
+
+.notifications-list{
+  width:100%;
+}
+
+.notification-item{
+  min-height:78px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px;
+  border-bottom:1px solid #15191f;
+}
+
+.notification-item.unread{
+  background:#20242a;
+}
+
+.notification-avatar{
+  width:48px;
+  height:48px;
+  flex:none;
+  border-radius:50%;
+  overflow:hidden;
+  background:#24272c;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.notification-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.notification-text{
+  flex:1;
+  min-width:0;
+  font-size:14px;
+  line-height:1.35;
+}
+
+.notification-username{
+  font-weight:700;
+}
+
+.notification-time{
+  color:#8e9298;
+  margin-left:4px;
+}
+
+.notification-post-cover{
+  width:52px;
+  height:66px;
+  flex:none;
+  overflow:hidden;
+  border-radius:5px;
+  background:#222;
+}
+
+.notification-post-cover img,
+.notification-post-cover video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.notifications-empty{
+  padding:80px 20px;
+  text-align:center;
+  color:#8e9298;
+  font-size:14px;
+}
