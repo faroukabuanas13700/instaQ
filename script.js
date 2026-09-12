@@ -1772,9 +1772,10 @@ function mediaElement(
       video.autoplay =
         true;
 
-      video.setAttributasync      "autoplay",
-        ""
-      );
+      video.setAttribute(
+  "autoplay",
+  ""
+);
 
       video.setAttribute(
         "muted",
