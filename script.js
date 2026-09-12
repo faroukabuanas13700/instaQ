@@ -2431,7 +2431,49 @@ async function loadSupabasePosts() {
 
         })
       );
+const postIds =
+  state.posts.map(
+    post => post.id
+  );
 
+if (postIds.length) {
+
+  const {
+    data: likesData,
+    error: likesError
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select("post_id,user_id")
+      .in("post_id", postIds);
+
+  if (likesError) {
+    throw likesError;
+  }
+
+  state.posts.forEach(
+    post => {
+
+      post.likes =
+        (likesData || [])
+          .filter(
+            like =>
+              like.post_id == post.id
+          )
+          .length;
+
+      state.liked[post.id] =
+        (likesData || [])
+          .some(
+            like =>
+              like.post_id == post.id &&
+              like.user_id === currentUser.id
+          );
+
+    }
+  );
+
+}
 
     save();
 
@@ -2520,115 +2562,214 @@ $("#postInput")
 LIKES
 ========================================================= */
 
-function like(
-  id,
-  showAnimation = false
-) {
+async function refreshPostLikes(postId) {
+
+  if (!supabaseReady() || !postId) {
+    return 0;
+  }
+
+  const {
+    count,
+    error
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select(
+        "*",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "post_id",
+        postId
+      );
+
+  if (error) {
+    console.error(
+      "Erreur compteur likes :",
+      error
+    );
+
+    return 0;
+  }
+
+  const total =
+    count || 0;
 
   const post =
     state.posts.find(
       item =>
-        item.id ==
-        id
+        item.id == postId
     );
 
+  if (post) {
+    post.likes = total;
+  }
 
-  if (!post) {
+  const explorePost =
+    explorePosts.find(
+      item =>
+        item.id == postId
+    );
+
+  if (explorePost) {
+    explorePost.likes = total;
+  }
+
+  return total;
+}
+
+
+async function like(
+  id,
+  showAnimation = false
+) {
+
+  if (
+    !supabaseReady() ||
+    !currentUser ||
+    !id
+  ) {
     return;
   }
 
+  try {
 
-  if (
-    !state.liked[id]
-  ) {
+    const {
+      data: existingLike,
+      error: checkError
+    } =
+      await supabaseClient
+        .from("post_likes")
+        .select(
+          "post_id,user_id"
+        )
+        .eq(
+          "post_id",
+          id
+        )
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .maybeSingle();
 
-    post.likes =
-      (
-        post.likes ||
-        0
-      ) +
-      1;
-
-
-    state.liked[id] =
-      true;
-
-
-  } else {
-
-    post.likes =
-      Math.max(
-        0,
-        (
-          post.likes ||
-          0
-        ) -
-        1
-      );
-
-
-    state.liked[id] =
-      false;
-
-  }
-
-
-  save();
-
-  renderGrid();
-
-
-  if (
-    showAnimation &&
-    state.liked[id]
-  ) {
-
-    const target =
-      [...(
-        $("#postGrid")
-          ?.children ||
-        []
-      )]
-        .find(
-          element =>
-            element.dataset.id ==
-            id
-        );
-
-
-    if (target) {
-
-      const heart =
-        document.createElement(
-          "div"
-        );
-
-
-      heart.className =
-        "heart-pop";
-
-
-      heart.textContent =
-        "♥";
-
-
-      target.appendChild(
-        heart
-      );
-
-
-      setTimeout(
-        () =>
-          heart.remove(),
-        750
-      );
-
+    if (checkError) {
+      throw checkError;
     }
 
+
+    if (existingLike) {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("post_likes")
+          .delete()
+          .eq(
+            "post_id",
+            id
+          )
+          .eq(
+            "user_id",
+            currentUser.id
+          );
+
+      if (error) {
+        throw error;
+      }
+
+      state.liked[id] =
+        false;
+
+    } else {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("post_likes")
+          .insert({
+            post_id: id,
+            user_id: currentUser.id
+          });
+
+      if (error) {
+        throw error;
+      }
+
+      state.liked[id] =
+        true;
+    }
+
+
+    await refreshPostLikes(
+      id
+    );
+
+    save();
+
+    renderGrid();
+
+
+    if (
+      showAnimation &&
+      state.liked[id]
+    ) {
+
+      const target =
+        [...(
+          $("#postGrid")
+            ?.children ||
+          []
+        )]
+          .find(
+            element =>
+              element.dataset.id ==
+              id
+          );
+
+
+      if (target) {
+
+        const heart =
+          document.createElement(
+            "div"
+          );
+
+        heart.className =
+          "heart-pop";
+
+        heart.textContent =
+          "♥";
+
+        target.appendChild(
+          heart
+        );
+
+        setTimeout(
+          () =>
+            heart.remove(),
+          750
+        );
+      }
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Erreur like Supabase :",
+      error
+    );
+
+    toast(
+      "Impossible d'enregistrer le like"
+    );
   }
-
 }
-
 /* =========================================================
 REELS
 ========================================================= */
