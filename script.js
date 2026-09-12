@@ -5675,8 +5675,830 @@ $("#exploreSearchInput")
     }
   );
 /* =========================================================
-NAVIGATION BAS
+FIL D'ACTUALITÉ
 ========================================================= */
+
+let homeFeedPosts = [];
+let homeFeedProfiles = new Map();
+
+
+async function loadHomeFeed() {
+
+  if (
+    !supabaseReady() ||
+    !currentUser
+  ) {
+    return;
+  }
+
+  const feed =
+    $("#homeFeed");
+
+  const stories =
+    $("#homeStories");
+
+  const empty =
+    $("#homeFeedEmpty");
+
+  if (
+    !feed ||
+    !stories
+  ) {
+    return;
+  }
+
+
+  feed.innerHTML = "";
+  stories.innerHTML = "";
+
+  if (empty) {
+    empty.hidden = true;
+  }
+
+
+  try {
+
+    const {
+      data: follows,
+      error: followsError
+    } =
+      await supabaseClient
+        .from("follows")
+        .select("following_id")
+        .eq(
+          "follower_id",
+          currentUser.id
+        );
+
+    if (followsError) {
+      throw followsError;
+    }
+
+
+    const followingIds =
+      (follows || [])
+        .map(
+          row =>
+            row.following_id
+        )
+        .filter(Boolean);
+
+
+    if (!followingIds.length) {
+
+      if (empty) {
+        empty.hidden = false;
+        empty.textContent =
+          "Vous ne suivez encore aucun compte.";
+      }
+
+      return;
+    }
+
+
+    const {
+      data: profiles,
+      error: profilesError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,avatar_url"
+        )
+        .in(
+          "id",
+          followingIds
+        );
+
+    if (profilesError) {
+      throw profilesError;
+    }
+
+
+    homeFeedProfiles =
+      new Map(
+        (profiles || []).map(
+          profile => [
+            profile.id,
+            profile
+          ]
+        )
+      );
+
+
+    followingIds.forEach(
+      id => {
+
+        const profile =
+          homeFeedProfiles.get(id);
+
+        if (!profile) {
+          return;
+        }
+
+
+        const story =
+          document.createElement(
+            "div"
+          );
+
+        story.className =
+          "home-story";
+
+
+        const ring =
+          document.createElement(
+            "div"
+          );
+
+        ring.className =
+          "home-story-ring";
+
+
+        const avatar =
+          document.createElement(
+            "div"
+          );
+
+        avatar.className =
+          "home-story-avatar";
+
+
+        if (profile.avatar_url) {
+
+          const img =
+            document.createElement(
+              "img"
+            );
+
+          img.src =
+            profile.avatar_url;
+
+          img.alt =
+            profile.username ||
+            "";
+
+          avatar.appendChild(
+            img
+          );
+
+        } else {
+
+          avatar.textContent =
+            "👤";
+
+        }
+
+
+        const name =
+          document.createElement(
+            "div"
+          );
+
+        name.className =
+          "home-story-name";
+
+        name.textContent =
+          profile.username ||
+          "Utilisateur";
+
+
+        ring.appendChild(
+          avatar
+        );
+
+        story.appendChild(
+          ring
+        );
+
+        story.appendChild(
+          name
+        );
+
+
+        story.addEventListener(
+          "click",
+          async () => {
+
+            await showProfileInterface();
+
+            await openUserProfile(
+              profile.id
+            );
+
+          }
+        );
+
+
+        stories.appendChild(
+          story
+        );
+
+      }
+    );
+
+
+    const {
+      data: posts,
+      error: postsError
+    } =
+      await supabaseClient
+        .from("posts")
+        .select(
+          "id,user_id,type,media_url,caption,likes"
+        )
+        .in(
+          "user_id",
+          followingIds
+        )
+        .order(
+          "id",
+          {
+            ascending: false
+          }
+        )
+        .limit(100);
+
+    if (postsError) {
+      throw postsError;
+    }
+
+
+    homeFeedPosts =
+      (posts || []).map(
+        post => ({
+          id:
+            post.id,
+
+          userId:
+            post.user_id,
+
+          type:
+            post.type ||
+            "image",
+
+          src:
+            post.media_url,
+
+          caption:
+            post.caption ||
+            "",
+
+          likes:
+            0
+        })
+      );
+
+
+    const postIds =
+      homeFeedPosts.map(
+        post => post.id
+      );
+
+
+    let likesData = [];
+
+
+    if (postIds.length) {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("post_likes")
+          .select(
+            "post_id,user_id"
+          )
+          .in(
+            "post_id",
+            postIds
+          );
+
+      if (error) {
+        throw error;
+      }
+
+
+      likesData =
+        data || [];
+
+
+      homeFeedPosts.forEach(
+        post => {
+
+          post.likes =
+            likesData.filter(
+              like =>
+                like.post_id ==
+                post.id
+            ).length;
+
+        }
+      );
+
+    }
+
+
+    if (!homeFeedPosts.length) {
+
+      if (empty) {
+        empty.hidden = false;
+        empty.textContent =
+          "Aucune publication pour le moment.";
+      }
+
+      return;
+    }
+
+
+    homeFeedPosts.forEach(
+      post => {
+
+        const profile =
+          homeFeedProfiles.get(
+            post.userId
+          );
+
+        const article =
+          document.createElement(
+            "article"
+          );
+
+        article.className =
+          "feed-post";
+
+
+        const mediaWrap =
+          document.createElement(
+            "div"
+          );
+
+        mediaWrap.className =
+          "feed-post-media-wrap";
+
+
+        const media =
+          mediaElement(
+            post
+          );
+
+        mediaWrap.appendChild(
+          media
+        );
+
+
+        const top =
+          document.createElement(
+            "div"
+          );
+
+        top.className =
+          "feed-post-top";
+
+
+        const avatar =
+          document.createElement(
+            "div"
+          );
+
+        avatar.className =
+          "feed-post-avatar";
+
+
+        if (profile?.avatar_url) {
+
+          const img =
+            document.createElement(
+              "img"
+            );
+
+          img.src =
+            profile.avatar_url;
+
+          img.alt =
+            profile.username ||
+            "";
+
+          avatar.appendChild(
+            img
+          );
+
+        } else {
+
+          avatar.textContent =
+            "👤";
+
+        }
+
+
+        const userBox =
+          document.createElement(
+            "div"
+          );
+
+        userBox.className =
+          "feed-post-user";
+
+
+        const username =
+          document.createElement(
+            "div"
+          );
+
+        username.className =
+          "feed-post-username";
+
+        username.textContent =
+          profile?.username ||
+          "Utilisateur";
+
+
+        const audio =
+          document.createElement(
+            "div"
+          );
+
+        audio.className =
+          "feed-post-audio";
+
+        audio.textContent =
+          post.type === "video"
+            ? "♫ Audio d’origine"
+            : "";
+
+
+        userBox.appendChild(
+          username
+        );
+
+        userBox.appendChild(
+          audio
+        );
+
+
+        const menu =
+          document.createElement(
+            "button"
+          );
+
+        menu.className =
+          "feed-post-menu";
+
+        menu.type =
+          "button";
+
+        menu.textContent =
+          "⋯";
+
+
+        top.appendChild(
+          avatar
+        );
+
+        top.appendChild(
+          userBox
+        );
+
+        top.appendChild(
+          menu
+        );
+
+
+        top.addEventListener(
+          "click",
+          async () => {
+
+            if (!post.userId) {
+              return;
+            }
+
+            await showProfileInterface();
+
+            await openUserProfile(
+              post.userId
+            );
+
+          }
+        );
+
+
+        mediaWrap.appendChild(
+          top
+        );
+
+
+        if (
+          post.type === "video"
+        ) {
+
+          media.muted = true;
+          media.loop = true;
+          media.playsInline = true;
+          media.autoplay = true;
+
+          media
+            .play()
+            .catch(
+              () => {}
+            );
+
+          media.addEventListener(
+            "click",
+            () => {
+
+              openReels(
+                post
+              );
+
+            }
+          );
+
+        }
+
+
+        const actions =
+          document.createElement(
+            "div"
+          );
+
+        actions.className =
+          "feed-post-actions";
+
+
+        const likeBtn =
+          document.createElement(
+            "button"
+          );
+
+        likeBtn.className =
+          "feed-action-btn";
+
+        likeBtn.type =
+          "button";
+
+        likeBtn.innerHTML =
+          `♡ <span>${formatLikes(post.likes)}</span>`;
+
+
+        likeBtn.addEventListener(
+          "click",
+          async () => {
+
+            await like(
+              post.id,
+              false
+            );
+
+            const total =
+              await refreshPostLikes(
+                post.id
+              );
+
+            post.likes =
+              total;
+
+            likeBtn.innerHTML =
+              `♡ <span>${formatLikes(total)}</span>`;
+
+          }
+        );
+
+
+        const commentBtn =
+          document.createElement(
+            "button"
+          );
+
+        commentBtn.className =
+          "feed-action-btn";
+
+        commentBtn.type =
+          "button";
+
+        commentBtn.innerHTML =
+          `◯ <span>0</span>`;
+
+
+        const shareBtn =
+          document.createElement(
+            "button"
+          );
+
+        shareBtn.className =
+          "feed-action-btn";
+
+        shareBtn.type =
+          "button";
+
+        shareBtn.textContent =
+          "↗";
+
+
+        shareBtn.addEventListener(
+          "click",
+          async () => {
+
+            try {
+
+              await navigator.clipboard
+                .writeText(
+                  location.href
+                );
+
+              toast(
+                "Lien copié"
+              );
+
+            } catch {
+
+              toast(
+                "Impossible de copier le lien"
+              );
+
+            }
+
+          }
+        );
+
+
+        const saveBtn =
+          document.createElement(
+            "button"
+          );
+
+        saveBtn.className =
+          "feed-action-btn feed-save-btn";
+
+        saveBtn.type =
+          "button";
+
+        saveBtn.textContent =
+          "♡";
+
+
+        actions.appendChild(
+          likeBtn
+        );
+
+        actions.appendChild(
+          commentBtn
+        );
+
+        actions.appendChild(
+          shareBtn
+        );
+
+        actions.appendChild(
+          saveBtn
+        );
+
+
+        const caption =
+          document.createElement(
+            "div"
+          );
+
+        caption.className =
+          "feed-post-caption";
+
+
+        if (post.caption) {
+
+          const strong =
+            document.createElement(
+              "strong"
+            );
+
+          strong.textContent =
+            profile?.username ||
+            "Utilisateur";
+
+          caption.appendChild(
+            strong
+          );
+
+          caption.appendChild(
+            document.createTextNode(
+              post.caption
+            )
+          );
+
+        }
+
+
+        article.appendChild(
+          mediaWrap
+        );
+
+        article.appendChild(
+          actions
+        );
+
+        article.appendChild(
+          caption
+        );
+
+
+        feed.appendChild(
+          article
+        );
+
+      }
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur fil actualité :",
+      error
+    );
+
+    if (empty) {
+      empty.hidden = false;
+      empty.textContent =
+        "Impossible de charger le fil d’actualité.";
+    }
+
+  }
+
+}
+
+
+async function showHomeFeed() {
+
+  const profilePage =
+    $("#profilePage");
+
+  const explorePage =
+    $("#explorePage");
+
+  const homeFeedPage =
+    $("#homeFeedPage");
+
+  const topbar =
+    $(".topbar");
+
+
+  if (profilePage) {
+    profilePage.hidden = true;
+  }
+
+  if (explorePage) {
+    explorePage.hidden = true;
+  }
+
+  const followListPage =
+    $("#followListPage");
+
+  if (followListPage) {
+    followListPage.hidden = true;
+  }
+
+
+  if (topbar) {
+    topbar.style.display =
+      "none";
+  }
+
+  if (homeFeedPage) {
+    homeFeedPage.hidden = false;
+  }
+
+
+  $$(".bottom-nav-btn")
+    .forEach(
+      button => {
+
+        button.classList.remove(
+          "active"
+        );
+
+      }
+    );
+
+
+  $("#bottomHomeBtn")
+    ?.classList
+    .add(
+      "active"
+    );
+
+
+  await loadHomeFeed();
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+/* =========================================================
+NAVIGATION BAS
+========================================================= */ 
 
 $("#bottomSearchBtn")
   ?.addEventListener(
@@ -5726,15 +6548,9 @@ await showProfileInterface();
 $("#bottomHomeBtn")
   ?.addEventListener(
     "click",
-    () => {
+    async () => {
 
-      window.scrollTo({
-        top:
-          0,
-
-        behavior:
-          "smooth"
-      });
+      await showHomeFeed();
 
     }
   );
