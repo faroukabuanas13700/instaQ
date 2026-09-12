@@ -7324,19 +7324,16 @@ INITIALISATION
 
 async function initializeApp() {
 
-  setupAuth();
-
-
-  if (!supabaseReady()) {
-
-    showAuthScreen();
-
-    return;
-
-  }
-
-
   try {
+
+    setupAuth();
+
+    if (!supabaseReady()) {
+
+      showAuthScreen();
+      return;
+
+    }
 
     const {
       data,
@@ -7345,56 +7342,38 @@ async function initializeApp() {
       await supabaseClient.auth
         .getSession();
 
-
     if (error) {
       throw error;
     }
 
-
     const session =
       data?.session;
 
+    if (!session?.user) {
 
-    if (
-      !session?.user
-    ) {
-
-      currentUser =
-        null;
-
+      currentUser = null;
 
       showAuthScreen();
 
-
       return;
-
     }
-
 
     currentUser =
       session.user;
-
 
     loadLocalStateForUser();
 
     applyTheme();
 
-
     await loadUserProfile();
 
     await loadSupabasePosts();
 
-
-    setOwnerMode(
-      true
-    );
-
+    setOwnerMode(true);
 
     showApp();
 
-
     playGridVideos();
-
 
   } catch (error) {
 
@@ -7403,16 +7382,16 @@ async function initializeApp() {
       error
     );
 
-
-    currentUser =
-      null;
-
+    currentUser = null;
 
     showAuthScreen();
 
   }
 
 }
+
+
+initializeApp();
 
 
 initializeApp();
