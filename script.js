@@ -6481,7 +6481,82 @@ async function showHomeFeed() {
   });
 
 }
+/* =========================================================
+PAGE NOTIFICATIONS
+========================================================= */
 
+async function showNotificationsPage() {
+
+  const notificationsPage =
+    $("#notificationsPage");
+
+  const homeFeedPage =
+    $("#homeFeedPage");
+
+  const profilePage =
+    $("#profilePage");
+
+  const explorePage =
+    $("#explorePage");
+
+  const topbar =
+    $(".topbar");
+
+  if (homeFeedPage) {
+    homeFeedPage.hidden = true;
+  }
+
+  if (profilePage) {
+    profilePage.hidden = true;
+  }
+
+  if (explorePage) {
+    explorePage.hidden = true;
+  }
+
+  if (topbar) {
+    topbar.style.display = "none";
+  }
+
+  if (notificationsPage) {
+    notificationsPage.hidden = false;
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+$("#notificationsBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      await showNotificationsPage();
+
+    }
+  );
+
+
+$("#notificationsBackBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      const notificationsPage =
+        $("#notificationsPage");
+
+      if (notificationsPage) {
+        notificationsPage.hidden = true;
+      }
+
+      await showHomeFeed();
+
+    }
+  );
 /* =========================================================
 NAVIGATION BAS
 ========================================================= */ 
