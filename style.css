@@ -1954,3 +1954,272 @@ REELS
     height:36px;
   }
 }
+/* =========================================================
+FIL D'ACTUALITÉ
+========================================================= */
+
+.home-feed-page{
+  max-width:900px;
+  margin:auto;
+  background:#000;
+  color:#fff;
+  min-height:100vh;
+  padding-bottom:70px;
+}
+
+.home-feed-header{
+  position:sticky;
+  top:0;
+  z-index:150;
+  height:62px;
+  display:grid;
+  grid-template-columns:60px 1fr 60px;
+  align-items:center;
+  background:#080b0f;
+  border-bottom:1px solid #15191f;
+}
+
+.home-create-btn,
+.home-feed-heart{
+  border:0;
+  background:transparent;
+  color:#fff;
+  font-size:38px;
+  cursor:pointer;
+}
+
+.home-feed-heart{
+  font-size:34px;
+}
+
+.home-feed-title{
+  text-align:center;
+  font-size:24px;
+  font-weight:700;
+}
+
+.home-feed-title span{
+  font-size:18px;
+  margin-left:4px;
+}
+
+.home-stories{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  padding:12px 10px 14px;
+  background:#080b0f;
+  border-bottom:1px solid #15191f;
+  scrollbar-width:none;
+}
+
+.home-stories::-webkit-scrollbar{
+  display:none;
+}
+
+.home-story{
+  flex:none;
+  width:76px;
+  text-align:center;
+}
+
+.home-story-ring{
+  width:70px;
+  height:70px;
+  padding:3px;
+  border-radius:50%;
+  background:linear-gradient(
+    45deg,
+    #ffd600,
+    #ff7a00,
+    #ff0169,
+    #d300c5
+  );
+  margin:auto;
+}
+
+.home-story-avatar{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  overflow:hidden;
+  background:#222;
+  border:3px solid #000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.home-story-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.home-story-name{
+  margin-top:6px;
+  font-size:11px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.home-feed{
+  background:#000;
+}
+
+.feed-post{
+  width:100%;
+  border-bottom:1px solid #20242a;
+  background:#000;
+}
+
+.feed-post-media-wrap{
+  position:relative;
+  width:100%;
+  background:#000;
+}
+
+.feed-post-media-wrap img,
+.feed-post-media-wrap video{
+  width:100%;
+  max-height:78vh;
+  display:block;
+  object-fit:cover;
+  background:#000;
+}
+
+.feed-post-top{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  z-index:3;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  background:linear-gradient(
+    to bottom,
+    rgba(0,0,0,.58),
+    rgba(0,0,0,0)
+  );
+}
+
+.feed-post-avatar{
+  width:42px;
+  height:42px;
+  flex:none;
+  border-radius:50%;
+  overflow:hidden;
+  background:#222;
+  border:2px solid #fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.feed-post-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.feed-post-user{
+  min-width:0;
+  flex:1;
+}
+
+.feed-post-username{
+  font-size:15px;
+  font-weight:700;
+}
+
+.feed-post-audio{
+  margin-top:2px;
+  font-size:12px;
+  color:#ddd;
+}
+
+.feed-post-menu{
+  border:0;
+  background:transparent;
+  color:#fff;
+  font-size:28px;
+  cursor:pointer;
+}
+
+.feed-post-actions{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:12px 14px 6px;
+}
+
+.feed-action-btn{
+  border:0;
+  background:transparent;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:28px;
+  cursor:pointer;
+}
+
+.feed-action-btn span{
+  font-size:14px;
+  font-weight:600;
+}
+
+.feed-save-btn{
+  margin-left:auto;
+}
+
+.feed-post-caption{
+  padding:0 14px 14px;
+  font-size:14px;
+  line-height:1.4;
+}
+
+.feed-post-caption strong{
+  margin-right:6px;
+}
+
+.home-feed-empty{
+  padding:70px 20px;
+  text-align:center;
+  color:#8e8e93;
+  font-size:14px;
+}
+
+@media(max-width:600px){
+
+  .home-feed-header{
+    height:60px;
+  }
+
+  .home-feed-title{
+    font-size:22px;
+  }
+
+  .home-create-btn,
+  .home-feed-heart{
+    font-size:34px;
+  }
+
+  .home-story{
+    width:72px;
+  }
+
+  .home-story-ring{
+    width:66px;
+    height:66px;
+  }
+
+  .feed-post-media-wrap img,
+  .feed-post-media-wrap video{
+    max-height:72vh;
+  }
+
+}
