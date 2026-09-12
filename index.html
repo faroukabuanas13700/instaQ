@@ -24,18 +24,19 @@
   <!-- CONNEXION / INSCRIPTION -->
   <section id="authScreen" class="auth-screen" hidden>
     <div class="auth-box">
-<img
-  src="logo-extaze.png"
-  alt="Logo extaze"
-  class="auth-logo-image"
->
-      
+
+      <img
+        src="logo-extaze.png"
+        alt="Logo extaze"
+        class="auth-logo-image"
+      >
 
       <p class="auth-subtitle">
         Partagez vos photos et vidéos
       </p>
 
       <form id="loginForm" class="auth-form">
+
         <input
           id="loginEmail"
           type="email"
@@ -52,11 +53,18 @@
           required
         >
 
-        <button type="submit" class="auth-primary">
+        <button
+          type="submit"
+          class="auth-primary"
+        >
           Se connecter
         </button>
 
-        <div class="auth-error" id="loginError"></div>
+        <div
+          class="auth-error"
+          id="loginError"
+        ></div>
+
       </form>
 
       <div class="auth-separator">
@@ -82,11 +90,17 @@
           required
         >
 
-        <button type="submit" class="auth-secondary">
+        <button
+          type="submit"
+          class="auth-secondary"
+        >
           Créer un compte
         </button>
 
-        <div class="auth-error" id="signupError"></div>
+        <div
+          class="auth-error"
+          id="signupError"
+        ></div>
 
       </form>
 
@@ -103,7 +117,7 @@
       <div class="topbar-inner">
 
         <div class="brand">
-  extaze
+          extaze
         </div>
 
         <div class="top-actions">
@@ -151,7 +165,6 @@
 
     </header>
 
-    
 
     <!-- PROFIL -->
     <main
@@ -531,62 +544,63 @@
 
 
     <!-- PAGE ABONNÉS / ABONNEMENTS -->
-<section
-  id="followListPage"
-  class="follow-list-page"
-  hidden
->
-
-  <header class="follow-page-header">
-
-    <button
-      id="followListBack"
-      class="follow-page-back"
-      type="button"
-      aria-label="Retour"
-    >
-      ‹
-    </button>
-
-    <h2 id="followListTitle">
-      Abonnés
-    </h2>
-
-    <div class="follow-page-header-space"></div>
-
-  </header>
-
-
-  <div class="follow-page-search">
-
-    <svg viewBox="0 0 24 24">
-      <circle
-        cx="11"
-        cy="11"
-        r="7"
-      ></circle>
-
-      <path
-        d="M16.5 16.5L21 21"
-      ></path>
-    </svg>
-
-    <input
-      id="followListSearch"
-      type="search"
-      placeholder="Rechercher"
-      autocomplete="off"
+    <section
+      id="followListPage"
+      class="follow-list-page"
+      hidden
     >
 
-  </div>
+      <header class="follow-page-header">
+
+        <button
+          id="followListBack"
+          class="follow-page-back"
+          type="button"
+          aria-label="Retour"
+        >
+          ‹
+        </button>
+
+        <h2 id="followListTitle">
+          Abonnés
+        </h2>
+
+        <div class="follow-page-header-space"></div>
+
+      </header>
 
 
-  <div
-    id="followListContent"
-    class="follow-list-content"
-  ></div>
+      <div class="follow-page-search">
 
-</section>
+        <svg viewBox="0 0 24 24">
+          <circle
+            cx="11"
+            cy="11"
+            r="7"
+          ></circle>
+
+          <path
+            d="M16.5 16.5L21 21"
+          ></path>
+        </svg>
+
+        <input
+          id="followListSearch"
+          type="search"
+          placeholder="Rechercher"
+          autocomplete="off"
+        >
+
+      </div>
+
+
+      <div
+        id="followListContent"
+        class="follow-list-content"
+      ></div>
+
+    </section>
+
 
     <!-- MODIFICATION PROFIL -->
     <dialog
@@ -689,134 +703,7 @@
       id="viewer"
       aria-hidden="true"
     >
-<!-- PAGE REELS -->
-<section
-  id="reelsPage"
-  class="reels-page"
-  hidden
->
 
-  <div class="reels-stage">
-
-    <video
-      id="reelsVideo"
-      class="reels-video"
-      playsinline
-      loop
-      muted
-    ></video>
-
-    <div class="reels-top">
-
-      <button
-        id="reelsBackBtn"
-        class="reels-back-btn"
-        type="button"
-        aria-label="Retour"
-      >
-        ←
-      </button>
-
-      <div class="reels-title">
-        Reels
-      </div>
-
-    </div>
-
-
-    <div class="reels-actions">
-
-      <button
-        id="reelsLikeBtn"
-        class="reels-action-btn"
-        type="button"
-        aria-label="J’aime"
-      >
-        ♡
-        <span id="reelsLikeCount">0</span>
-      </button>
-
-      <button
-        id="reelsCommentBtn"
-        class="reels-action-btn"
-        type="button"
-        aria-label="Commentaires"
-      >
-        ◯
-        <span>0</span>
-      </button>
-
-      <button
-        id="reelsShareBtn"
-        class="reels-action-btn"
-        type="button"
-        aria-label="Partager"
-      >
-        ↗
-      </button>
-
-      <button
-        id="reelsSaveBtn"
-        class="reels-action-btn"
-        type="button"
-        aria-label="Enregistrer"
-      >
-        ♡
-      </button>
-
-    </div>
-
-
-    <div class="reels-bottom-info">
-
-      <div class="reels-user-row">
-
-        <div
-          id="reelsAvatar"
-          class="reels-avatar"
-        >
-          👤
-        </div>
-
-        <div
-          id="reelsUsername"
-          class="reels-username"
-        >
-          utilisateur
-        </div>
-
-        <button
-          id="reelsFollowBtn"
-          class="reels-follow-btn"
-          type="button"
-        >
-          Suivre
-        </button>
-
-      </div>
-
-      <div
-        id="reelsCaption"
-        class="reels-caption"
-      ></div>
-
-    </div>
-
-  </div>
-
-
-  <div class="reels-comment-bar">
-
-    <input
-      id="reelsCommentInput"
-      type="text"
-      placeholder="Ajoutez un commentaire..."
-      autocomplete="off"
-    >
-
-  </div>
-
-          </section>
       <button
         class="viewer-close"
         id="viewerClose"
@@ -857,6 +744,136 @@
     </div>
 
 
+    <!-- PAGE REELS -->
+    <section
+      id="reelsPage"
+      class="reels-page"
+      hidden
+    >
+
+      <div class="reels-stage">
+
+        <video
+          id="reelsVideo"
+          class="reels-video"
+          playsinline
+          loop
+          muted
+        ></video>
+
+        <div class="reels-top">
+
+          <button
+            id="reelsBackBtn"
+            class="reels-back-btn"
+            type="button"
+            aria-label="Retour"
+          >
+            ←
+          </button>
+
+          <div class="reels-title">
+            Reels
+          </div>
+
+        </div>
+
+
+        <div class="reels-actions">
+
+          <button
+            id="reelsLikeBtn"
+            class="reels-action-btn"
+            type="button"
+            aria-label="J’aime"
+          >
+            ♡
+            <span id="reelsLikeCount">0</span>
+          </button>
+
+          <button
+            id="reelsCommentBtn"
+            class="reels-action-btn"
+            type="button"
+            aria-label="Commentaires"
+          >
+            ◯
+            <span>0</span>
+          </button>
+
+          <button
+            id="reelsShareBtn"
+            class="reels-action-btn"
+            type="button"
+            aria-label="Partager"
+          >
+            ↗
+          </button>
+
+          <button
+            id="reelsSaveBtn"
+            class="reels-action-btn"
+            type="button"
+            aria-label="Enregistrer"
+          >
+            ♡
+          </button>
+
+        </div>
+
+
+        <div class="reels-bottom-info">
+
+          <div class="reels-user-row">
+
+            <div
+              id="reelsAvatar"
+              class="reels-avatar"
+            >
+              👤
+            </div>
+
+            <div
+              id="reelsUsername"
+              class="reels-username"
+            >
+              utilisateur
+            </div>
+
+            <button
+              id="reelsFollowBtn"
+              class="reels-follow-btn"
+              type="button"
+            >
+              Suivre
+            </button>
+
+          </div>
+
+          <div
+            id="reelsCaption"
+            class="reels-caption"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <div class="reels-comment-bar">
+
+        <input
+          id="reelsCommentInput"
+          type="text"
+          placeholder="Ajoutez un commentaire..."
+          autocomplete="off"
+        >
+
+      </div>
+
+    </section>
+
+
     <!-- PROGRESSION -->
     <div
       class="upload-progress"
@@ -891,7 +908,7 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./script.js?v=20"></script>
+  <script src="./script.js?v=21"></script>
 
-  </body>
+</body>
 </html>
