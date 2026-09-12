@@ -6536,7 +6536,295 @@ async function showHomeFeed() {
 /* =========================================================
 PAGE NOTIFICATIONS
 ========================================================= */
+async function loadNotifications() {
 
+  if (
+    !supabaseReady() ||
+    !currentUser
+  ) {
+    return;
+  }
+
+  const list =
+    $("#notificationsList");
+
+  const empty =
+    $("#notificationsEmpty");
+
+  if (!list || !empty) {
+    return;
+  }
+
+  list.innerHTML = "";
+  empty.hidden = true;
+
+  try {
+
+    const {
+      data: notifications,
+      error
+    } =
+      await supabaseClient
+        .from("notifications")
+        .select(
+          "id,recipient_id,actor_id,post_id,type,message,is_read,created_at"
+        )
+        .eq(
+          "recipient_id",
+          currentUser.id
+        )
+        .order(
+          "created_at",
+          { ascending: false }
+        )
+        .limit(100);
+
+    if (error) {
+      throw error;
+    }
+
+    if (
+      !notifications ||
+      !notifications.length
+    ) {
+      empty.hidden = false;
+      return;
+    }
+
+    const actorIds =
+      [
+        ...new Set(
+          notifications
+            .map(item => item.actor_id)
+            .filter(Boolean)
+        )
+      ];
+
+    const postIds =
+      [
+        ...new Set(
+          notifications
+            .map(item => item.post_id)
+            .filter(Boolean)
+        )
+      ];
+
+    const {
+      data: profiles,
+      error: profilesError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,avatar_url"
+        )
+        .in(
+          "id",
+          actorIds
+        );
+
+    if (profilesError) {
+      throw profilesError;
+    }
+
+    const {
+      data: posts,
+      error: postsError
+    } =
+      await supabaseClient
+        .from("posts")
+        .select(
+          "id,type,media_url"
+        )
+        .in(
+          "id",
+          postIds
+        );
+
+    if (postsError) {
+      throw postsError;
+    }
+
+    const profilesMap =
+      new Map(
+        (profiles || []).map(
+          profile => [
+            profile.id,
+            profile
+          ]
+        )
+      );
+
+    const postsMap =
+      new Map(
+        (posts || []).map(
+          post => [
+            post.id,
+            post
+          ]
+        )
+      );
+
+    notifications.forEach(
+      notification => {
+
+        const profile =
+          profilesMap.get(
+            notification.actor_id
+          );
+
+        const post =
+          postsMap.get(
+            notification.post_id
+          );
+
+        const item =
+          document.createElement(
+            "div"
+          );
+
+        item.className =
+          "notification-item";
+
+        if (!notification.is_read) {
+          item.classList.add(
+            "unread"
+          );
+        }
+
+        const avatar =
+          document.createElement(
+            "div"
+          );
+
+        avatar.className =
+          "notification-avatar";
+
+        if (profile?.avatar_url) {
+
+          const img =
+            document.createElement(
+              "img"
+            );
+
+          img.src =
+            profile.avatar_url;
+
+          img.alt =
+            profile.username || "";
+
+          avatar.appendChild(img);
+
+        } else {
+
+          avatar.textContent = "👤";
+
+        }
+
+        const text =
+          document.createElement(
+            "div"
+          );
+
+        text.className =
+          "notification-text";
+
+        const username =
+          document.createElement(
+            "span"
+          );
+
+        username.className =
+          "notification-username";
+
+        username.textContent =
+          profile?.username ||
+          "Utilisateur";
+
+        const message =
+          document.createElement(
+            "span"
+          );
+
+        message.textContent =
+          " " +
+          (
+            notification.message ||
+            "a aimé votre publication"
+          );
+
+        text.appendChild(username);
+        text.appendChild(message);
+
+        const cover =
+          document.createElement(
+            "div"
+          );
+
+        cover.className =
+          "notification-post-cover";
+
+        if (post?.media_url) {
+
+          if (post.type === "video") {
+
+            const video =
+              document.createElement(
+                "video"
+              );
+
+            video.src =
+              post.media_url;
+
+            video.muted = true;
+            video.playsInline = true;
+            video.preload = "metadata";
+
+            cover.appendChild(video);
+
+          } else {
+
+            const img =
+              document.createElement(
+                "img"
+              );
+
+            img.src =
+              post.media_url;
+
+            img.alt =
+              "Publication";
+
+            cover.appendChild(img);
+
+          }
+
+        }
+
+        item.appendChild(avatar);
+        item.appendChild(text);
+        item.appendChild(cover);
+
+        list.appendChild(item);
+
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erreur chargement notifications :",
+      error
+    );
+
+    empty.textContent =
+      "Impossible de charger les notifications.";
+
+    empty.hidden = false;
+
+  }
+
+}
 async function showNotificationsPage() {
 
   const notificationsPage =
@@ -6573,7 +6861,7 @@ async function showNotificationsPage() {
   if (notificationsPage) {
     notificationsPage.hidden = false;
   }
-
+await loadNotifications();
   window.scrollTo({
     top: 0,
     behavior: "smooth"
