@@ -7038,6 +7038,7 @@ PAGE NOTIFICATIONS
 
 }
 
+}
 
 
 async function showNotificationsPage() {
