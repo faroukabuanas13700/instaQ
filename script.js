@@ -6322,19 +6322,7 @@ async function loadHomeFeed() {
         );
 
 
-        const saveBtn =
-          document.createElement(
-            "button"
-          );
-
-        saveBtn.className =
-          "feed-action-btn feed-save-btn";
-
-        saveBtn.type =
-          "button";
-
-        saveBtn.textContent =
-          "♡";
+        
 
 
         actions.appendChild(
@@ -6349,9 +6337,7 @@ async function loadHomeFeed() {
           shareBtn
         );
 
-        actions.appendChild(
-          saveBtn
-        );
+        
 
 
         const caption =
