@@ -2492,7 +2492,7 @@ if (postIds.length) {
     save();
 
     renderGrid();
-
+renderProfile();
 
   } catch (error) {
 
