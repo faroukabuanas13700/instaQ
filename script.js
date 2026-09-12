@@ -4733,7 +4733,49 @@ activeProfileId =
 
         })
       );
+const postIds =
+  state.posts.map(
+    post => post.id
+  );
 
+if (postIds.length) {
+
+  const {
+    data: likesData,
+    error: likesError
+  } =
+    await supabaseClient
+      .from("post_likes")
+      .select("post_id,user_id")
+      .in("post_id", postIds);
+
+  if (likesError) {
+    throw likesError;
+  }
+
+  state.posts.forEach(
+    post => {
+
+      post.likes =
+        (likesData || [])
+          .filter(
+            like =>
+              like.post_id == post.id
+          )
+          .length;
+
+      state.liked[post.id] =
+        (likesData || [])
+          .some(
+            like =>
+              like.post_id == post.id &&
+              like.user_id === currentUser.id
+          );
+
+    }
+  );
+
+}
 
     renderProfile();
 
