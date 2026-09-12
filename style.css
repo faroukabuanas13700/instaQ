@@ -671,15 +671,30 @@ GRILLE
 
 .post .like-badge{
   position:absolute;
-  left:6px;
-  bottom:6px;
-  padding:3px 6px;
-  background:rgba(0,0,0,.55);
-  border-radius:10px;
+  left:7px;
+  bottom:7px;
+  padding:0;
+  background:transparent;
   color:#fff;
-  font-size:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  text-shadow:0 1px 4px rgba(0,0,0,.9);
+  pointer-events:none;
 }
 
+.profile-like-heart{
+  font-size:21px;
+  line-height:20px;
+}
+
+.profile-like-number{
+  font-size:11px;
+  line-height:14px;
+  font-weight:700;
+}
 .heart-pop{
   position:absolute;
   inset:0;
