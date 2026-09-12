@@ -689,7 +689,134 @@
       id="viewer"
       aria-hidden="true"
     >
+<!-- PAGE REELS -->
+<section
+  id="reelsPage"
+  class="reels-page"
+  hidden
+>
 
+  <div class="reels-stage">
+
+    <video
+      id="reelsVideo"
+      class="reels-video"
+      playsinline
+      loop
+      muted
+    ></video>
+
+    <div class="reels-top">
+
+      <button
+        id="reelsBackBtn"
+        class="reels-back-btn"
+        type="button"
+        aria-label="Retour"
+      >
+        ←
+      </button>
+
+      <div class="reels-title">
+        Reels
+      </div>
+
+    </div>
+
+
+    <div class="reels-actions">
+
+      <button
+        id="reelsLikeBtn"
+        class="reels-action-btn"
+        type="button"
+        aria-label="J’aime"
+      >
+        ♡
+        <span id="reelsLikeCount">0</span>
+      </button>
+
+      <button
+        id="reelsCommentBtn"
+        class="reels-action-btn"
+        type="button"
+        aria-label="Commentaires"
+      >
+        ◯
+        <span>0</span>
+      </button>
+
+      <button
+        id="reelsShareBtn"
+        class="reels-action-btn"
+        type="button"
+        aria-label="Partager"
+      >
+        ↗
+      </button>
+
+      <button
+        id="reelsSaveBtn"
+        class="reels-action-btn"
+        type="button"
+        aria-label="Enregistrer"
+      >
+        ♡
+      </button>
+
+    </div>
+
+
+    <div class="reels-bottom-info">
+
+      <div class="reels-user-row">
+
+        <div
+          id="reelsAvatar"
+          class="reels-avatar"
+        >
+          👤
+        </div>
+
+        <div
+          id="reelsUsername"
+          class="reels-username"
+        >
+          utilisateur
+        </div>
+
+        <button
+          id="reelsFollowBtn"
+          class="reels-follow-btn"
+          type="button"
+        >
+          Suivre
+        </button>
+
+      </div>
+
+      <div
+        id="reelsCaption"
+        class="reels-caption"
+      ></div>
+
+    </div>
+
+  </div>
+
+
+  <div class="reels-comment-bar">
+
+    <input
+      id="reelsCommentInput"
+      type="text"
+      placeholder="Ajoutez un commentaire..."
+      autocomplete="off"
+    >
+
+  </div>
+
+          </section>
       <button
         class="viewer-close"
         id="viewerClose"
