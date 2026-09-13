@@ -584,6 +584,114 @@
 
     </section>
 
+<!-- MESSAGERIE -->
+<section
+  id="messagesPage"
+  class="messages-page"
+  hidden
+>
+
+  <header class="messages-header">
+
+    <button
+      id="messagesBackBtn"
+      class="messages-back-btn"
+      type="button"
+      aria-label="Retour"
+    >
+      ←
+    </button>
+
+    <div class="messages-header-title">
+      <strong id="messagesUsername">
+        Messages
+      </strong>
+    </div>
+
+    <button
+      id="newMessageBtn"
+      class="messages-new-btn"
+      type="button"
+      aria-label="Nouveau message"
+    >
+      <svg viewBox="0 0 24 24">
+        <path d="M4 20h4l11-11-4-4L4 16v4z"></path>
+        <path d="M13 6l4 4"></path>
+      </svg>
+    </button>
+
+  </header>
+
+
+  <div class="messages-search-wrap">
+
+    <div class="messages-search">
+
+      <svg viewBox="0 0 24 24">
+        <circle
+          cx="11"
+          cy="11"
+          r="7"
+        ></circle>
+
+        <path
+          d="M16.5 16.5L21 21"
+        ></path>
+      </svg>
+
+      <input
+        id="messagesSearchInput"
+        type="search"
+        placeholder="Rechercher"
+        autocomplete="off"
+      >
+
+    </div>
+
+  </div>
+
+
+  <div class="messages-section-header">
+
+    <strong>
+      Messages
+    </strong>
+
+    <button
+      id="messageRequestsBtn"
+      type="button"
+    >
+      Invitations
+    </button>
+
+  </div>
+
+
+  <div
+    id="messagesList"
+    class="messages-list"
+  >
+
+    <div
+      id="messagesEmpty"
+      class="messages-empty"
+    >
+      <div class="messages-empty-icon">
+        ✉
+      </div>
+
+      <strong>
+        Vos messages
+      </strong>
+
+      <span>
+        Envoyez des messages privés aux autres utilisateurs d’extaze.
+      </span>
+    </div>
+
+  </div>
+
+</section>
 
     <!-- BOUTON THÈME -->
     <button
