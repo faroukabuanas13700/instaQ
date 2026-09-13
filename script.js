@@ -9452,6 +9452,92 @@ $("#settingsEmailBtn")
     }
   );
 
+$("#settingsPasswordBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      if (
+        !supabaseClient ||
+        !currentUser
+      ) {
+        return;
+      }
+
+      const newPassword =
+        window.prompt(
+          "Entrez votre nouveau mot de passe :"
+        );
+
+      if (newPassword === null) {
+        return;
+      }
+
+      if (newPassword.length < 8) {
+
+        toast(
+          "Le mot de passe doit contenir au moins 8 caractères"
+        );
+
+        return;
+      }
+
+      const confirmation =
+        window.prompt(
+          "Confirmez votre nouveau mot de passe :"
+        );
+
+      if (confirmation === null) {
+        return;
+      }
+
+      if (
+        newPassword !==
+        confirmation
+      ) {
+
+        toast(
+          "Les deux mots de passe ne correspondent pas"
+        );
+
+        return;
+      }
+
+      try {
+
+        const {
+          error
+        } =
+          await supabaseClient.auth
+            .updateUser({
+              password:
+                newPassword
+            });
+
+        if (error) {
+          throw error;
+        }
+
+        toast(
+          "Mot de passe modifié"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Erreur modification mot de passe :",
+          error
+        );
+
+        toast(
+          error?.message ||
+          "Impossible de modifier le mot de passe"
+        );
+
+      }
+
+    }
+  );
 
 $("#settingsLogoutBtn")
   ?.addEventListener(
