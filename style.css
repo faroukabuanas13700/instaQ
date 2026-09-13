@@ -3413,3 +3413,151 @@ MESSAGERIE
   font-size:14px;
   line-height:1.45;
 }
+
+/* =========================================================
+NOUVEAU MESSAGE
+========================================================= */
+
+.new-message-page{
+  position:fixed;
+  inset:0;
+  z-index:125000;
+  background:#000;
+  color:#fff;
+  overflow-y:auto;
+  padding-bottom:40px;
+}
+
+.new-message-page[hidden]{
+  display:none !important;
+}
+
+.new-message-header{
+  height:64px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 16px;
+  border-bottom:1px solid #1c1c1c;
+  background:#000;
+  position:sticky;
+  top:0;
+  z-index:5;
+}
+
+.new-message-header h2{
+  margin:0;
+  font-size:20px;
+  font-weight:700;
+}
+
+.new-message-back-btn{
+  width:42px;
+  height:42px;
+  border:0;
+  background:transparent;
+  color:#fff;
+  font-size:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.new-message-search-wrap{
+  padding:14px 16px;
+}
+
+.new-message-search{
+  height:44px;
+  border-radius:12px;
+  background:#262626;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:0 14px;
+}
+
+.new-message-search svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:#a8a8a8;
+  stroke-width:2;
+}
+
+.new-message-search input{
+  flex:1;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#fff;
+  font-size:16px;
+}
+
+.new-message-search input::placeholder{
+  color:#a8a8a8;
+}
+
+.new-message-results{
+  padding:4px 10px 20px;
+}
+
+.new-message-empty{
+  padding:36px 20px;
+  text-align:center;
+  color:#8e8e8e;
+  font-size:14px;
+}
+
+.new-message-user{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 8px;
+  border-radius:12px;
+}
+
+.new-message-user:active{
+  background:#151515;
+}
+
+.new-message-avatar{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  overflow:hidden;
+  background:#262626;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 54px;
+}
+
+.new-message-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.new-message-user-text{
+  min-width:0;
+  flex:1;
+}
+
+.new-message-user-username{
+  color:#fff;
+  font-size:15px;
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.new-message-user-name{
+  margin-top:2px;
+  color:#8e8e8e;
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
