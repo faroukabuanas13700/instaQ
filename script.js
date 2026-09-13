@@ -9663,6 +9663,149 @@ function closeNewMessagePage() {
 
 }
 
+let activeChatUser = null;
+
+
+function setChatAvatar(
+  container,
+  profile
+) {
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+
+  if (profile?.avatar_url) {
+
+    const img =
+      document.createElement(
+        "img"
+      );
+
+    img.src =
+      profile.avatar_url;
+
+    img.alt =
+      profile.username || "";
+
+    container.appendChild(
+      img
+    );
+
+  } else {
+
+    container.textContent =
+      "👤";
+
+  }
+
+}
+
+
+function openChatWithUser(
+  profile
+) {
+
+  if (!profile?.id) {
+    return;
+  }
+
+  activeChatUser =
+    profile;
+
+
+  const newMessagePage =
+    $("#newMessagePage");
+
+  const messagesPage =
+    $("#messagesPage");
+
+  const chatPage =
+    $("#chatPage");
+
+
+  if (!chatPage) {
+    return;
+  }
+
+
+  if (newMessagePage) {
+    newMessagePage.hidden = true;
+  }
+
+  if (messagesPage) {
+    messagesPage.hidden = true;
+  }
+
+  chatPage.hidden =
+    false;
+
+
+  setChatAvatar(
+    $("#chatHeaderAvatar"),
+    profile
+  );
+
+  setChatAvatar(
+    $("#chatProfileAvatar"),
+    profile
+  );
+
+
+  const displayName =
+    profile.name ||
+    profile.username ||
+    "Utilisateur";
+
+
+  if ($("#chatHeaderName")) {
+    $("#chatHeaderName")
+      .textContent =
+      displayName;
+  }
+
+  if ($("#chatHeaderUsername")) {
+    $("#chatHeaderUsername")
+      .textContent =
+      profile.username
+        ? "@" + profile.username
+        : "";
+  }
+
+  if ($("#chatProfileName")) {
+    $("#chatProfileName")
+      .textContent =
+      displayName;
+  }
+
+  if ($("#chatProfileUsername")) {
+    $("#chatProfileUsername")
+      .textContent =
+      profile.username
+        ? "@" + profile.username
+        : "";
+  }
+
+
+  const messages =
+    $("#chatMessages");
+
+  if (messages) {
+    messages.innerHTML = "";
+  }
+
+
+  setTimeout(
+    () => {
+      $("#chatInput")
+        ?.focus();
+    },
+    200
+  );
+
+}
 
 function renderNewMessageUsers(
   users
