@@ -1102,6 +1102,152 @@
 
   </div>
 </div>
+<!-- PARAMETRES -->
+<section
+  id="settingsPage"
+  class="settings-page"
+  hidden
+>
+  <header class="settings-header">
+
+    <button
+      id="settingsBackBtn"
+      class="settings-back-btn"
+      type="button"
+      aria-label="Retour"
+    >
+      ←
+    </button>
+
+    <h2>Paramètres et activité</h2>
+
+  </header>
+
+
+  <div class="settings-content">
+
+    <div class="settings-section-title">
+      Votre compte
+    </div>
+
+
+    <button
+      id="settingsEditProfileBtn"
+      class="settings-row"
+      type="button"
+    >
+      <span class="settings-row-icon">✎</span>
+
+      <span class="settings-row-text">
+        <strong>Modifier les informations du compte</strong>
+        <small>Nom, pseudo, bio et lien</small>
+      </span>
+
+      <span class="settings-arrow">›</span>
+    </button>
+
+
+    <button
+      id="settingsEmailBtn"
+      class="settings-row"
+      type="button"
+    >
+      <span class="settings-row-icon">✉</span>
+
+      <span class="settings-row-text">
+        <strong>Adresse e-mail</strong>
+        <small id="settingsEmailValue"></small>
+      </span>
+
+      <span class="settings-arrow">›</span>
+    </button>
+
+
+    <button
+      id="settingsPasswordBtn"
+      class="settings-row"
+      type="button"
+    >
+      <span class="settings-row-icon">🔑</span>
+
+      <span class="settings-row-text">
+        <strong>Mot de passe</strong>
+        <small>Modifier votre mot de passe</small>
+      </span>
+
+      <span class="settings-arrow">›</span>
+    </button>
+
+
+    <div class="settings-separator"></div>
+
+
+    <div class="settings-section-title">
+      Qui peut voir votre contenu
+    </div>
+
+
+    <button
+      id="settingsPrivacyBtn"
+      class="settings-row"
+      type="button"
+    >
+      <span class="settings-row-icon">🔒</span>
+
+      <span class="settings-row-text">
+        <strong>Confidentialité du compte</strong>
+        <small id="settingsPrivacyValue">
+          Public
+        </small>
+      </span>
+
+      <span class="settings-arrow">›</span>
+    </button>
+
+
+    <div class="settings-separator"></div>
+
+
+    <div class="settings-section-title">
+      Connexion
+    </div>
+
+
+    <button
+      id="settingsLogoutBtn"
+      class="settings-row"
+      type="button"
+    >
+      <span class="settings-row-icon">↪</span>
+
+      <span class="settings-row-text">
+        <strong>Se déconnecter</strong>
+      </span>
+
+      <span class="settings-arrow">›</span>
+    </button>
+
+
+    <button
+      id="settingsDeleteAccountBtn"
+      class="settings-row settings-danger"
+      type="button"
+    >
+      <span class="settings-row-icon">🗑</span>
+
+      <span class="settings-row-text">
+        <strong>Supprimer le compte</strong>
+        <small>
+          Supprimer définitivement votre compte
+        </small>
+      </span>
+
+      <span class="settings-arrow">›</span>
+    </button>
+
+  </div>
+
+</section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./script.js?v=33"></script>
