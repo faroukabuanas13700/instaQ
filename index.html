@@ -749,6 +749,139 @@
   </div>
 
 </section>
+<!-- CONVERSATION -->
+<section
+  id="chatPage"
+  class="chat-page"
+  hidden
+>
+
+  <header class="chat-header">
+
+    <button
+      id="chatBackBtn"
+      class="chat-back-btn"
+      type="button"
+      aria-label="Retour"
+    >
+      ←
+    </button>
+
+    <div
+      id="chatHeaderAvatar"
+      class="chat-header-avatar"
+    >
+      👤
+    </div>
+
+    <div class="chat-header-user">
+
+      <strong id="chatHeaderName">
+        Utilisateur
+      </strong>
+
+      <span id="chatHeaderUsername"></span>
+
+    </div>
+
+  </header>
+
+
+  <div
+    id="chatProfile"
+    class="chat-profile"
+  >
+
+    <div
+      id="chatProfileAvatar"
+      class="chat-profile-avatar"
+    >
+      👤
+    </div>
+
+    <strong id="chatProfileName">
+      Utilisateur
+    </strong>
+
+    <span id="chatProfileUsername"></span>
+
+    <button
+      id="chatViewProfileBtn"
+      type="button"
+      class="chat-view-profile-btn"
+    >
+      Voir le profil
+    </button>
+
+  </div>
+
+
+  <div
+    id="chatMessages"
+    class="chat-messages"
+  ></div>
+
+
+  <form
+    id="chatForm"
+    class="chat-composer"
+  >
+
+    <button
+      id="chatCameraBtn"
+      class="chat-camera-btn"
+      type="button"
+      aria-label="Caméra"
+    >
+      ◉
+    </button>
+
+    <input
+      id="chatInput"
+      type="text"
+      maxlength="4000"
+      placeholder="Votre message..."
+      autocomplete="off"
+    >
+
+    <button
+      id="chatMicBtn"
+      class="chat-action-btn"
+      type="button"
+      aria-label="Message vocal"
+    >
+      🎙
+    </button>
+
+    <button
+      id="chatPhotoBtn"
+      class="chat-action-btn"
+      type="button"
+      aria-label="Photo ou vidéo"
+    >
+      ▣
+    </button>
+
+    <button
+      id="chatSendBtn"
+      class="chat-send-btn"
+      type="submit"
+      aria-label="Envoyer"
+    >
+      ➤
+    </button>
+
+  </form>
+
+
+  <input
+    id="chatMediaInput"
+    type="file"
+    accept="image/*,video/*"
+    hidden
+  >
+
+</section>
 
     <!-- BOUTON THÈME -->
     <button
