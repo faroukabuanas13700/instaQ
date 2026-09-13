@@ -130,8 +130,10 @@ function showApp() {
   }
 
   if (currentUser) {
-    startNotificationsRealtime();
-  }
+
+  startNotificationsRealtime();
+
+  startMessagesRealtime();
 
 }
 
@@ -622,7 +624,9 @@ async function logoutUser() {
     }
 
 stopNotificationsRealtime();
-    currentUser = null;
+stopMessagesRealtime();
+
+currentUser = null;
 
 
     state = {
@@ -9993,6 +9997,242 @@ $("#chatForm")
 
     }
   );
+let messagesRealtimeChannel = null;
+
+
+async function receivePendingMessage(
+  row
+) {
+
+  if (
+    !row ||
+    !currentUser ||
+    row.recipient_id !== currentUser.id
+  ) {
+    return;
+  }
+
+
+  const message = {
+
+    server_id:
+      row.id,
+
+    sender_id:
+      row.sender_id,
+
+    recipient_id:
+      row.recipient_id,
+
+    message_type:
+      row.message_type || "text",
+
+    content:
+      row.content || "",
+
+    created_at:
+      row.created_at
+
+  };
+
+
+  try {
+
+    /* ENREGISTRER SUR LE TÉLÉPHONE */
+
+    await saveLocalMessage(
+      message
+    );
+
+
+    /* SI LA CONVERSATION EST OUVERTE */
+
+    if (
+      activeChatUser?.id ===
+        row.sender_id &&
+      $("#chatPage") &&
+      !$("#chatPage").hidden
+    ) {
+
+      renderChatMessage(
+        message
+      );
+
+    } else {
+
+      /* NOUVEAU MESSAGE = ENVELOPPE ROUGE */
+
+      setMessagesUnread(
+        true
+      );
+
+    }
+
+
+    /* SUPPRIMER LA COPIE TEMPORAIRE SUPABASE */
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("pending_messages")
+        .delete()
+        .eq(
+          "id",
+          row.id
+        );
+
+    if (error) {
+      throw error;
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur réception message :",
+      error
+    );
+
+  }
+
+}
+
+
+async function loadPendingMessages() {
+
+  if (
+    !supabaseClient ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("pending_messages")
+        .select(
+          "id,sender_id,recipient_id,message_type,content,created_at"
+        )
+        .eq(
+          "recipient_id",
+          currentUser.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending:true
+          }
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    for (
+      const row of
+      data || []
+    ) {
+
+      await receivePendingMessage(
+        row
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur messages en attente :",
+      error
+    );
+
+  }
+
+}
+
+
+function stopMessagesRealtime() {
+
+  if (
+    messagesRealtimeChannel &&
+    supabaseClient
+  ) {
+
+    supabaseClient.removeChannel(
+      messagesRealtimeChannel
+    );
+
+  }
+
+  messagesRealtimeChannel =
+    null;
+
+}
+
+
+function startMessagesRealtime() {
+
+  if (
+    !supabaseClient ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  stopMessagesRealtime();
+
+
+  /* RÉCUPÉRER CE QUI A ÉTÉ ENVOYÉ PENDANT L'ABSENCE */
+
+  loadPendingMessages();
+
+
+  /* RECEVOIR IMMÉDIATEMENT LES NOUVEAUX MESSAGES */
+
+  messagesRealtimeChannel =
+    supabaseClient
+      .channel(
+        "messages-" +
+        currentUser.id +
+        "-" +
+        Date.now()
+      )
+      .on(
+        "postgres_changes",
+
+        {
+          event:"INSERT",
+
+          schema:"public",
+
+          table:"pending_messages",
+
+          filter:
+            `recipient_id=eq.${currentUser.id}`
+        },
+
+        payload => {
+
+          receivePendingMessage(
+            payload.new
+          );
+
+        }
+      )
+      .subscribe();
+
+}
 /* =========================================================
 NAVIGATION BAS
 ========================================================= */ 
