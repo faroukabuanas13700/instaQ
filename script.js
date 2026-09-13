@@ -13,6 +13,7 @@ const SUPABASE_PUBLISHABLE_KEY =
 
 let supabaseClient = null;
 let currentUser = null;
+let currentUserAvatar = "";
 let authEventsConfigured = false;
 
 try {
@@ -301,7 +302,57 @@ function save() {
 
 }
 
+function updateBottomProfileAvatar() {
 
+  const button =
+    $("#bottomProfileBtn");
+
+  if (!button) {
+    return;
+  }
+
+  button.innerHTML = "";
+
+  if (currentUserAvatar) {
+
+    const img =
+      document.createElement(
+        "img"
+      );
+
+    img.src =
+      currentUserAvatar;
+
+    img.alt =
+      "Mon profil";
+
+    img.className =
+      "bottom-profile-avatar";
+
+    button.appendChild(
+      img
+    );
+
+  } else {
+
+    const fallback =
+      document.createElement(
+        "span"
+      );
+
+    fallback.textContent =
+      "👤";
+
+    fallback.className =
+      "bottom-profile-fallback";
+
+    button.appendChild(
+      fallback
+    );
+
+  }
+
+}
 /* =========================================================
 AUTHENTIFICATION
 ========================================================= */
@@ -866,7 +917,11 @@ async function loadUserProfile() {
     state.customMedia.avatar =
       profile?.avatar_url ||
       "";
+currentUserAvatar =
+  profile?.avatar_url ||
+  "";
 
+updateBottomProfileAvatar();
 
     state.customMedia.cover =
       profile?.cover_url ||
@@ -1592,26 +1647,32 @@ async function setMedia(
     }
 
 
-    if (
-      fieldName ===
-      "avatar_url"
-    ) {
+    
 
-      state.customMedia.avatar =
-        publicUrl;
+      if (
+  fieldName ===
+  "avatar_url"
+) {
 
-    }
+  state.customMedia.avatar =
+    publicUrl;
 
+  currentUserAvatar =
+    publicUrl;
 
-    if (
-      fieldName ===
-      "cover_url"
-    ) {
+  updateBottomProfileAvatar();
 
-      state.customMedia.cover =
-        publicUrl;
+}
 
-    }
+if (
+  fieldName ===
+  "cover_url"
+) {
+
+  state.customMedia.cover =
+    publicUrl;
+
+}
 
 
     save();
