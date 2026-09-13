@@ -1000,5 +1000,47 @@ id="notificationsBtn"
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./script.js?v=26"></script>
+<!-- MENU OPTIONS PUBLICATION -->
+<div
+  id="postMenuOverlay"
+  class="post-menu-overlay"
+  hidden
+>
+  <div
+    class="post-menu-sheet"
+    role="dialog"
+    aria-modal="true"
+  >
+
+    <div class="post-menu-handle"></div>
+
+    <button
+      id="editPostMenuBtn"
+      class="post-menu-row"
+      type="button"
+    >
+      <span class="post-menu-icon">✎</span>
+      <span>Modifier la publication</span>
+    </button>
+
+    <button
+      id="deletePostMenuBtn"
+      class="post-menu-row post-menu-delete"
+      type="button"
+    >
+      <span class="post-menu-icon">♲</span>
+      <span>Supprimer</span>
+    </button>
+
+    <button
+      id="closePostMenuBtn"
+      class="post-menu-cancel"
+      type="button"
+    >
+      Annuler
+    </button>
+
+  </div>
+</div>
 </body>
 </html>
