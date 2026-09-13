@@ -9468,6 +9468,125 @@ $("#bottomSearchBtn")
     }
   );
 
+function setMessagesUnread(hasUnread) {
+
+  const button =
+    $("#bottomMessagesBtn");
+
+  if (!button) {
+    return;
+  }
+
+  button.dataset.unread =
+    hasUnread
+      ? "true"
+      : "false";
+
+  button.style.color =
+    hasUnread
+      ? "#ff3040"
+      : "";
+}
+
+
+async function showMessagesPage() {
+
+  const messagesPage =
+    $("#messagesPage");
+
+  if (!messagesPage) {
+    return;
+  }
+
+  const homeFeedPage =
+    $("#homeFeedPage");
+
+  const explorePage =
+    $("#explorePage");
+
+  const profilePage =
+    $("#profilePage");
+
+  const notificationsPage =
+    $("#notificationsPage");
+
+  const followListPage =
+    $("#followListPage");
+
+  if (homeFeedPage) {
+    homeFeedPage.hidden = true;
+  }
+
+  if (explorePage) {
+    explorePage.hidden = true;
+  }
+
+  if (profilePage) {
+    profilePage.hidden = true;
+  }
+
+  if (notificationsPage) {
+    notificationsPage.hidden = true;
+  }
+
+  if (followListPage) {
+    followListPage.hidden = true;
+  }
+
+  messagesPage.hidden =
+    false;
+
+  setMessagesUnread(
+    false
+  );
+
+  $$(".bottom-nav-btn")
+    .forEach(
+      button => {
+        button.classList.remove(
+          "active"
+        );
+      }
+    );
+
+  $("#bottomMessagesBtn")
+    ?.classList
+    .add(
+      "active"
+    );
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+$("#bottomMessagesBtn")
+  ?.addEventListener(
+    "click",
+    showMessagesPage
+  );
+
+
+$("#messagesBackBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      const page =
+        $("#messagesPage");
+
+      if (page) {
+        page.hidden = true;
+      }
+
+      await showHomeFeed();
+
+    }
+  );
+
 $("#bottomProfileBtn")
   ?.addEventListener(
     "click",
