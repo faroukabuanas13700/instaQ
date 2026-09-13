@@ -7176,24 +7176,55 @@ $("#bottomProfileBtn")
   ?.addEventListener(
     "click",
     async () => {
-await showProfileInterface();
-      if (
-        viewingOtherProfile
-      ) {
 
-        await returnToOwnProfile();
-
-      } else {
-
-        window.scrollTo({
-          top:
-            0,
-
-          behavior:
-            "smooth"
-        });
-
+      if (!currentUser) {
+        return;
       }
+
+      const homeFeedPage =
+        $("#homeFeedPage");
+
+      const explorePage =
+        $("#explorePage");
+
+      const notificationsPage =
+        $("#notificationsPage");
+
+      const followListPage =
+        $("#followListPage");
+
+
+      if (homeFeedPage) {
+        homeFeedPage.hidden =
+          true;
+      }
+
+      if (explorePage) {
+        explorePage.hidden =
+          true;
+      }
+
+      if (notificationsPage) {
+        notificationsPage.hidden =
+          true;
+      }
+
+      if (followListPage) {
+        followListPage.hidden =
+          true;
+      }
+
+
+      await showProfileInterface();
+
+      await returnToOwnProfile();
+
+
+      $("#bottomProfileBtn")
+        ?.classList
+        .add(
+          "active"
+        );
 
     }
   );
