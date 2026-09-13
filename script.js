@@ -8949,153 +8949,328 @@ async function markAllNotificationsRead() {
 
         /* MINIATURE PUBLICATION */
 
-        const cover =
-          document.createElement(
-            "div"
+        item.appendChild(
+  avatar
+);
+
+item.appendChild(
+  text
+);
+
+
+/* DEMANDE D'ABONNEMENT */
+
+if (
+  notification.type ===
+  "follow_request"
+) {
+
+  const actions =
+    document.createElement(
+      "div"
+    );
+
+  actions.className =
+    "notification-request-actions";
+
+
+  const acceptButton =
+    document.createElement(
+      "button"
+    );
+
+  acceptButton.type =
+    "button";
+
+  acceptButton.className =
+    "notification-request-accept";
+
+  acceptButton.textContent =
+    "Accepter";
+
+
+  const deleteButton =
+    document.createElement(
+      "button"
+    );
+
+  deleteButton.type =
+    "button";
+
+  deleteButton.className =
+    "notification-request-delete";
+
+  deleteButton.textContent =
+    "Supprimer";
+
+
+  acceptButton.addEventListener(
+    "click",
+    async event => {
+
+      event.stopPropagation();
+
+      acceptButton.disabled =
+        true;
+
+      deleteButton.disabled =
+        true;
+
+      try {
+
+        const {
+          error
+        } =
+          await supabaseClient.rpc(
+            "accept_follow_request",
+            {
+              p_requester:
+                notification.actor_id
+            }
           );
 
-        cover.className =
-          "notification-post-cover";
-
-
-        if (post?.media_url) {
-
-          if (
-            post.type ===
-            "video"
-          ) {
-
-            const video =
-              document.createElement(
-                "video"
-              );
-
-            video.src =
-              post.media_url;
-
-            video.muted =
-              true;
-
-            video.playsInline =
-              true;
-
-            video.preload =
-              "metadata";
-
-            cover.appendChild(
-              video
-            );
-
-          } else {
-
-            const img =
-              document.createElement(
-                "img"
-              );
-
-            img.src =
-              post.media_url;
-
-            img.alt =
-              "Publication";
-
-            cover.appendChild(
-              img
-            );
-
-          }
-
+        if (error) {
+          throw error;
         }
 
 
-        /* CLIC SUR LA NOTIFICATION */
+        await supabaseClient
+          .from("notifications")
+          .delete()
+          .eq(
+            "id",
+            notification.id
+          );
 
-        item.addEventListener(
-          "click",
-          async () => {
 
-            try {
+        toast(
+          "Demande acceptée"
+        );
 
-              await supabaseClient
-                .from("notifications")
-                .update({
-                  is_read: true
-                })
-                .eq(
-                  "id",
-                  notification.id
-                );
+        await loadNotifications();
 
-            } catch (error) {
+        await refreshNotificationBadge();
 
-              console.error(
-                "Erreur notification lue :",
-                error
-              );
 
+      } catch (error) {
+
+        console.error(
+          "Erreur acceptation demande :",
+          error
+        );
+
+        toast(
+          "Impossible d’accepter la demande"
+        );
+
+        acceptButton.disabled =
+          false;
+
+        deleteButton.disabled =
+          false;
+
+      }
+
+    }
+  );
+
+
+  deleteButton.addEventListener(
+    "click",
+    async event => {
+
+      event.stopPropagation();
+
+      acceptButton.disabled =
+        true;
+
+      deleteButton.disabled =
+        true;
+
+      try {
+
+        const {
+          error
+        } =
+          await supabaseClient.rpc(
+            "reject_follow_request",
+            {
+              p_requester:
+                notification.actor_id
             }
+          );
+
+        if (error) {
+          throw error;
+        }
 
 
-            if (post) {
+        await supabaseClient
+          .from("notifications")
+          .delete()
+          .eq(
+            "id",
+            notification.id
+          );
 
-              if (
-                post.type ===
-                "video"
-              ) {
 
-                openReels({
-                  id:
-                    post.id,
-
-                  userId:
-                    post.user_id,
-
-                  type:
-                    post.type,
-
-                  src:
-                    post.media_url,
-
-                  caption:
-                    post.caption || "",
-
-                  likes:
-                    0
-                });
-
-              } else {
-
-                await showProfileInterface();
-
-                await openUserProfile(
-                  post.user_id
-                );
-
-                openViewer(
-                  post.id
-                );
-
-              }
-
-            }
-
-          }
+        toast(
+          "Demande supprimée"
         );
 
+        await loadNotifications();
 
-        item.appendChild(
-          avatar
+        await refreshNotificationBadge();
+
+
+      } catch (error) {
+
+        console.error(
+          "Erreur suppression demande :",
+          error
         );
 
-        item.appendChild(
-          text
+        toast(
+          "Impossible de supprimer la demande"
         );
 
-        item.appendChild(
-          cover
+        acceptButton.disabled =
+          false;
+
+        deleteButton.disabled =
+          false;
+
+      }
+
+    }
+  );
+
+
+  actions.appendChild(
+    acceptButton
+  );
+
+  actions.appendChild(
+    deleteButton
+  );
+
+  item.appendChild(
+    actions
+  );
+
+}
+
+
+/* AUTRES NOTIFICATIONS */
+
+else {
+
+  const cover =
+    document.createElement(
+      "div"
+    );
+
+  cover.className =
+    "notification-post-cover";
+
+
+  if (post?.media_url) {
+
+    if (
+      post.type ===
+      "video"
+    ) {
+
+      const video =
+        document.createElement(
+          "video"
         );
 
+      video.src =
+        post.media_url;
 
+      video.muted =
+        true;
+
+      video.playsInline =
+        true;
+
+      video.preload =
+        "metadata";
+
+      cover.appendChild(
+        video
+      );
+
+    } else {
+
+      const img =
+        document.createElement(
+          "img"
+        );
+
+      img.src =
+        post.media_url;
+
+      img.alt =
+        "Publication";
+
+      cover.appendChild(
+        img
+      );
+
+    }
+
+  }
+
+
+  item.addEventListener(
+    "click",
+    async () => {
+
+      if (!post) {
+        return;
+      }
+
+      if (
+        post.type ===
+        "video"
+      ) {
+
+        openReels({
+          id: post.id,
+          userId: post.user_id,
+          type: post.type,
+          src: post.media_url,
+          caption:
+            post.caption || "",
+          likes: 0
+        });
+
+      } else {
+
+        await showProfileInterface();
+
+        await openUserProfile(
+          post.user_id
+        );
+
+        openViewer(
+          post.id
+        );
+
+      }
+
+    }
+  );
+
+
+  item.appendChild(
+    cover
+  );
+
+}
+        
         list.appendChild(
           item
         );
