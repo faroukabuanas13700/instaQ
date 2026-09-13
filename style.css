@@ -3168,3 +3168,51 @@ CONFIDENTIALITE DU COMPTE
 .privacy-switch input:checked + .privacy-slider::before{
   transform:translateX(24px);
 }
+/* =========================================================
+DEMANDES D'ABONNEMENT
+========================================================= */
+
+.notification-request-actions{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+
+.notification-request-actions button{
+  border:0;
+  border-radius:8px;
+  min-height:38px;
+  padding:0 13px;
+  font-size:14px;
+  font-weight:700;
+  color:#fff;
+  white-space:nowrap;
+}
+
+.notification-request-accept{
+  background:#0095f6;
+}
+
+.notification-request-delete{
+  background:#36393f;
+}
+
+.notification-request-actions button:disabled{
+  opacity:.55;
+}
+
+@media (max-width:480px){
+
+  .notification-request-actions{
+    gap:6px;
+  }
+
+  .notification-request-actions button{
+    min-height:36px;
+    padding:0 10px;
+    font-size:13px;
+  }
+
+}
