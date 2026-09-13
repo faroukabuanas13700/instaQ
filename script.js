@@ -9398,11 +9398,118 @@ $("#settingsEmailBtn")
           data,
           error
         } =
-          await supabaseClient.auth
-            .updateUser({
-              email
-            });
+          $("#settingsEmailBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
 
+      if (
+        !supabaseClient ||
+        !currentUser
+      ) {
+        return;
+      }
+
+      const currentEmail =
+        currentUser.email || "";
+
+      const newEmail =
+        window.prompt(
+          "Nouvelle adresse e-mail :",
+          currentEmail
+        );
+
+      if (newEmail === null) {
+        return;
+      }
+
+      const email =
+        newEmail
+          .trim()
+          .toLowerCase();
+
+      if (!email) {
+
+        toast(
+          "Adresse e-mail invalide"
+        );
+
+        return;
+      }
+
+      if (email === currentEmail) {
+
+        toast(
+          "Cette adresse est déjà utilisée"
+        );
+
+        return;
+      }
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await supabaseClient
+            .functions
+            .invoke(
+              "update-email",
+              {
+                body: {
+                  email
+                }
+              }
+            );
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.error) {
+          throw new Error(
+            data.error
+          );
+        }
+
+        currentUser = {
+          ...currentUser,
+          email:
+            data?.email ||
+            email
+        };
+
+        const emailValue =
+          $("#settingsEmailValue");
+
+        if (emailValue) {
+
+          emailValue.textContent =
+            currentUser.email;
+
+        }
+
+        toast(
+          "Adresse e-mail modifiée"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Erreur modification e-mail :",
+          error
+        );
+
+        toast(
+          error?.message ||
+          "Impossible de modifier l’adresse e-mail"
+        );
+
+      }
+
+    }
+  );
         if (error) {
           throw error;
         }
