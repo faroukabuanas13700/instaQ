@@ -9344,6 +9344,105 @@ $("#settingsEditProfileBtn")
   ?.addEventListener(
     "click",
     () => {
+$("#settingsEmailBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      if (
+        !supabaseClient ||
+        !currentUser
+      ) {
+        return;
+      }
+
+      const currentEmail =
+        currentUser.email || "";
+
+      const newEmail =
+        window.prompt(
+          "Nouvelle adresse e-mail :",
+          currentEmail
+        );
+
+      if (newEmail === null) {
+        return;
+      }
+
+      const email =
+        newEmail
+          .trim()
+          .toLowerCase();
+
+      if (!email) {
+
+        toast(
+          "Adresse e-mail invalide"
+        );
+
+        return;
+      }
+
+      if (email === currentEmail) {
+
+        toast(
+          "Cette adresse est déjà utilisée"
+        );
+
+        return;
+      }
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await supabaseClient.auth
+            .updateUser({
+              email
+            });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.user) {
+          currentUser =
+            data.user;
+        }
+
+        const emailValue =
+          $("#settingsEmailValue");
+
+        if (emailValue) {
+
+          emailValue.textContent =
+            currentUser?.email ||
+            email;
+
+        }
+
+        toast(
+          "Modification de l’adresse e-mail enregistrée"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Erreur modification e-mail :",
+          error
+        );
+
+        toast(
+          error?.message ||
+          "Impossible de modifier l’adresse e-mail"
+        );
+
+      }
+
+    }
+  );
 
       closeSettingsPage();
 
