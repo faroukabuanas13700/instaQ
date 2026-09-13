@@ -3306,6 +3306,1030 @@ $("#postMenuOverlay")
     }
   );
 /* =========================================================
+COMMENTAIRES
+========================================================= */
+
+let commentsPost =
+  null;
+
+
+function formatCommentTime(date) {
+
+  const time =
+    new Date(date).getTime();
+
+  const seconds =
+    Math.max(
+      0,
+      Math.floor(
+        (Date.now() - time) /
+        1000
+      )
+    );
+
+  if (seconds < 60) {
+    return "maintenant";
+  }
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+  if (minutes < 60) {
+    return minutes + " min";
+  }
+
+  const hours =
+    Math.floor(
+      minutes / 60
+    );
+
+  if (hours < 24) {
+    return hours + " h";
+  }
+
+  const days =
+    Math.floor(
+      hours / 24
+    );
+
+  return days + " j";
+}
+
+
+async function getCommentCount(
+  postId
+) {
+
+  if (!postId) {
+    return 0;
+  }
+
+  const {
+    count,
+    error
+  } =
+    await supabaseClient
+      .from("comments")
+      .select(
+        "*",
+        {
+          count:"exact",
+          head:true
+        }
+      )
+      .eq(
+        "post_id",
+        postId
+      );
+
+  if (error) {
+
+    console.error(
+      "Erreur compteur commentaires :",
+      error
+    );
+
+    return 0;
+  }
+
+  return count || 0;
+}
+
+
+async function updateCommentCount(
+  postId
+) {
+
+  const total =
+    await getCommentCount(
+      postId
+    );
+
+
+  if (
+    currentReelPost &&
+    currentReelPost.id ==
+      postId
+  ) {
+
+    const span =
+      $("#reelsCommentBtn span");
+
+    if (span) {
+
+      span.textContent =
+        formatLikes(total);
+
+    }
+
+  }
+
+
+  const viewerButton =
+    $("#viewerCommentBtn");
+
+  if (
+    viewerButton &&
+    viewerButton.dataset.postId ==
+      String(postId)
+  ) {
+
+    const span =
+      viewerButton.querySelector(
+        "span"
+      );
+
+    if (span) {
+
+      span.textContent =
+        formatLikes(total);
+
+    }
+
+  }
+
+
+  return total;
+}
+
+
+function setCommentCurrentAvatar() {
+
+  const box =
+    $("#commentCurrentAvatar");
+
+  if (!box) {
+    return;
+  }
+
+  box.innerHTML = "";
+
+
+  if (currentUserAvatar) {
+
+    const img =
+      document.createElement(
+        "img"
+      );
+
+    img.src =
+      currentUserAvatar;
+
+    img.alt =
+      "Votre profil";
+
+    box.appendChild(
+      img
+    );
+
+  } else {
+
+    box.textContent =
+      "👤";
+
+  }
+
+}
+
+
+async function loadComments(
+  postId
+) {
+
+  const list =
+    $("#commentsList");
+
+  const empty =
+    $("#commentsEmpty");
+
+
+  if (
+    !list ||
+    !empty ||
+    !postId
+  ) {
+    return;
+  }
+
+
+  list.innerHTML =
+    "";
+
+  empty.hidden =
+    true;
+
+
+  try {
+
+    const {
+      data: comments,
+      error
+    } =
+      await supabaseClient
+        .from("comments")
+        .select(
+          "id,post_id,user_id,content,created_at"
+        )
+        .eq(
+          "post_id",
+          postId
+        )
+        .order(
+          "created_at",
+          {
+            ascending:false
+          }
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (
+      !comments ||
+      !comments.length
+    ) {
+
+      empty.hidden =
+        false;
+
+      return;
+    }
+
+
+    const userIds =
+      [
+        ...new Set(
+          comments
+            .map(
+              comment =>
+                comment.user_id
+            )
+            .filter(Boolean)
+        )
+      ];
+
+
+    const commentIds =
+      comments.map(
+        comment =>
+          comment.id
+      );
+
+
+    let profiles =
+      [];
+
+    let likes =
+      [];
+
+
+    if (userIds.length) {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("profiles")
+          .select(
+            "id,username,name,avatar_url"
+          )
+          .in(
+            "id",
+            userIds
+          );
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      profiles =
+        data || [];
+
+    }
+
+
+    if (commentIds.length) {
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from("comment_likes")
+          .select(
+            "comment_id,user_id"
+          )
+          .in(
+            "comment_id",
+            commentIds
+          );
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      likes =
+        data || [];
+
+    }
+
+
+    const profilesMap =
+      new Map(
+        profiles.map(
+          profile => [
+            profile.id,
+            profile
+          ]
+        )
+      );
+
+
+    comments.forEach(
+      comment => {
+
+        const profile =
+          profilesMap.get(
+            comment.user_id
+          );
+
+
+        const commentLikes =
+          likes.filter(
+            like =>
+              like.comment_id ===
+              comment.id
+          );
+
+
+        const liked =
+          commentLikes.some(
+            like =>
+              like.user_id ===
+              currentUser.id
+          );
+
+
+        const row =
+          document.createElement(
+            "div"
+          );
+
+        row.className =
+          "comment-item";
+
+
+        const avatar =
+          document.createElement(
+            "div"
+          );
+
+        avatar.className =
+          "comment-avatar";
+
+
+        if (profile?.avatar_url) {
+
+          const img =
+            document.createElement(
+              "img"
+            );
+
+          img.src =
+            profile.avatar_url;
+
+          img.alt =
+            profile.username ||
+            "";
+
+          avatar.appendChild(
+            img
+          );
+
+        } else {
+
+          avatar.textContent =
+            "👤";
+
+        }
+
+
+        const body =
+          document.createElement(
+            "div"
+          );
+
+        body.className =
+          "comment-body";
+
+
+        const username =
+          document.createElement(
+            "span"
+          );
+
+        username.className =
+          "comment-username";
+
+        username.textContent =
+          profile?.username ||
+          "Utilisateur";
+
+
+        const content =
+          document.createElement(
+            "span"
+          );
+
+        content.className =
+          "comment-content";
+
+        content.textContent =
+          " " +
+          comment.content;
+
+
+        const meta =
+          document.createElement(
+            "div"
+          );
+
+        meta.className =
+          "comment-meta";
+
+        meta.textContent =
+          formatCommentTime(
+            comment.created_at
+          );
+
+
+        body.appendChild(
+          username
+        );
+
+        body.appendChild(
+          content
+        );
+
+        body.appendChild(
+          meta
+        );
+
+
+        const likeButton =
+          document.createElement(
+            "button"
+          );
+
+        likeButton.type =
+          "button";
+
+        likeButton.className =
+          "comment-like-btn";
+
+
+        if (liked) {
+
+          likeButton.classList.add(
+            "liked"
+          );
+
+        }
+
+
+        likeButton.innerHTML =
+          `
+          ${liked ? "♥" : "♡"}
+          <span class="comment-like-count">
+            ${formatLikes(commentLikes.length)}
+          </span>
+          `;
+
+
+        likeButton.addEventListener(
+          "click",
+          async event => {
+
+            event.stopPropagation();
+
+
+            try {
+
+              const isLiked =
+                likeButton
+                  .classList
+                  .contains(
+                    "liked"
+                  );
+
+
+              if (isLiked) {
+
+                const {
+                  error
+                } =
+                  await supabaseClient
+                    .from(
+                      "comment_likes"
+                    )
+                    .delete()
+                    .eq(
+                      "comment_id",
+                      comment.id
+                    )
+                    .eq(
+                      "user_id",
+                      currentUser.id
+                    );
+
+
+                if (error) {
+                  throw error;
+                }
+
+              } else {
+
+                const {
+                  error
+                } =
+                  await supabaseClient
+                    .from(
+                      "comment_likes"
+                    )
+                    .insert({
+                      comment_id:
+                        comment.id,
+
+                      user_id:
+                        currentUser.id
+                    });
+
+
+                if (error) {
+                  throw error;
+                }
+
+              }
+
+
+              await loadComments(
+                postId
+              );
+
+
+            } catch (error) {
+
+              console.error(
+                "Erreur like commentaire :",
+                error
+              );
+
+              toast(
+                "Impossible d’aimer ce commentaire"
+              );
+
+            }
+
+          }
+        );
+
+
+        row.appendChild(
+          avatar
+        );
+
+        row.appendChild(
+          body
+        );
+
+        row.appendChild(
+          likeButton
+        );
+
+
+        list.appendChild(
+          row
+        );
+
+      }
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur chargement commentaires :",
+      error
+    );
+
+    empty.textContent =
+      "Impossible de charger les commentaires.";
+
+    empty.hidden =
+      false;
+
+  }
+
+}
+
+
+async function openComments(
+  post
+) {
+
+  if (
+    !post ||
+    !post.id ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  commentsPost =
+    post;
+
+
+  const overlay =
+    $("#commentsOverlay");
+
+
+  if (!overlay) {
+    return;
+  }
+
+
+  setCommentCurrentAvatar();
+
+
+  overlay.hidden =
+    false;
+
+
+  await loadComments(
+    post.id
+  );
+
+
+  await updateCommentCount(
+    post.id
+  );
+
+
+  setTimeout(
+    () => {
+
+      $("#commentInput")
+        ?.focus();
+
+    },
+    250
+  );
+
+}
+
+
+function closeComments() {
+
+  const overlay =
+    $("#commentsOverlay");
+
+
+  if (overlay) {
+
+    overlay.hidden =
+      true;
+
+  }
+
+
+  if ($("#commentInput")) {
+
+    $("#commentInput").value =
+      "";
+
+  }
+
+}
+
+
+$("#commentsCloseBtn")
+  ?.addEventListener(
+    "click",
+    closeComments
+  );
+
+
+$("#commentsOverlay")
+  ?.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target.id ===
+        "commentsOverlay"
+      ) {
+
+        closeComments();
+
+      }
+
+    }
+  );
+
+
+$("#commentForm")
+  ?.addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      if (
+        !commentsPost ||
+        !currentUser
+      ) {
+        return;
+      }
+
+
+      const input =
+        $("#commentInput");
+
+
+      const content =
+        input?.value
+          .trim() ||
+        "";
+
+
+      if (!content) {
+        return;
+      }
+
+
+      const button =
+        $("#commentSendBtn");
+
+
+      if (button) {
+        button.disabled =
+          true;
+      }
+
+
+      try {
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from("comments")
+            .insert({
+              post_id:
+                commentsPost.id,
+
+              user_id:
+                currentUser.id,
+
+              content
+            });
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        input.value =
+          "";
+
+
+        await loadComments(
+          commentsPost.id
+        );
+
+
+        await updateCommentCount(
+          commentsPost.id
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Erreur ajout commentaire :",
+          error
+        );
+
+        toast(
+          "Impossible de publier le commentaire"
+        );
+
+
+      } finally {
+
+        if (button) {
+
+          button.disabled =
+            false;
+
+        }
+
+      }
+
+    }
+  );
+
+
+/* BOUTON COMMENTAIRE DES REELS */
+
+$("#reelsCommentBtn")
+  ?.addEventListener(
+    "click",
+    async event => {
+
+      event.stopPropagation();
+
+
+      if (!currentReelPost) {
+        return;
+      }
+
+
+      await openComments(
+        currentReelPost
+      );
+
+    }
+  );
+
+
+/* ACTIONS SUR LES PHOTOS */
+
+async function addViewerSocialActions(
+  post
+) {
+
+  const viewer =
+    $("#viewer");
+
+
+  if (
+    !viewer ||
+    !post
+  ) {
+    return;
+  }
+
+
+  viewer
+    .querySelector(
+      ".viewer-social-actions"
+    )
+    ?.remove();
+
+
+  const actions =
+    document.createElement(
+      "div"
+    );
+
+  actions.className =
+    "viewer-social-actions";
+
+
+  const likeButton =
+    document.createElement(
+      "button"
+    );
+
+  likeButton.type =
+    "button";
+
+  likeButton.className =
+    "viewer-social-btn";
+
+
+  const totalLikes =
+    await refreshPostLikes(
+      post.id
+    );
+
+
+  likeButton.innerHTML =
+    `
+    ♡
+    <span>
+      ${formatLikes(totalLikes)}
+    </span>
+    `;
+
+
+  likeButton.addEventListener(
+    "click",
+    async event => {
+
+      event.stopPropagation();
+
+
+      await like(
+        post.id,
+        false
+      );
+
+
+      const total =
+        await refreshPostLikes(
+          post.id
+        );
+
+
+      likeButton.innerHTML =
+        `
+        ♡
+        <span>
+          ${formatLikes(total)}
+        </span>
+        `;
+
+    }
+  );
+
+
+  const commentButton =
+    document.createElement(
+      "button"
+    );
+
+  commentButton.type =
+    "button";
+
+  commentButton.id =
+    "viewerCommentBtn";
+
+  commentButton.dataset.postId =
+    String(post.id);
+
+  commentButton.className =
+    "viewer-social-btn";
+
+
+  const commentsTotal =
+    await getCommentCount(
+      post.id
+    );
+
+
+  commentButton.innerHTML =
+    `
+    ◯
+    <span>
+      ${formatLikes(commentsTotal)}
+    </span>
+    `;
+
+
+  commentButton.addEventListener(
+    "click",
+    async event => {
+
+      event.stopPropagation();
+
+      await openComments(
+        post
+      );
+
+    }
+  );
+
+
+  actions.appendChild(
+    likeButton
+  );
+
+  actions.appendChild(
+    commentButton
+  );
+
+
+  viewer.appendChild(
+    actions
+  );
+
+}
+/* =========================================================
 REELS
 ========================================================= */
 
@@ -3564,6 +4588,10 @@ $("#reelsFollowBtn")
   }
 
   currentReelPost = post;
+
+await updateCommentCount(
+  post.id
+);
 
 addPostOptionsButton(
   page,
@@ -4019,6 +5047,10 @@ function showViewerPost() {
 
 addPostOptionsButton(
   $("#viewer"),
+  post
+);
+
+addViewerSocialActions(
   post
 );
 
