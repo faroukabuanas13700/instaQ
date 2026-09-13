@@ -6722,7 +6722,51 @@ await loadFollowCounts(
 await updateFollowButton(
   userId
 );
+const emptyState =
+  $("#emptyState");
 
+const followButton =
+  $("#followBtn");
+
+if (emptyState) {
+
+  const privateLocked =
+    viewingOtherProfile &&
+    followButton?.dataset.private ===
+      "true" &&
+    followButton?.dataset.followState !==
+      "following";
+
+  if (privateLocked) {
+
+    emptyState.innerHTML =
+      `
+      <div class="private-profile-message">
+        <div class="private-profile-lock">
+          🔒
+        </div>
+
+        <strong>
+          Ce compte est privé
+        </strong>
+
+        <span>
+          Abonnez-vous à ce compte pour voir ses photos et vidéos.
+        </span>
+      </div>
+      `;
+
+    emptyState.style.display =
+      "block";
+
+  } else {
+
+    emptyState.textContent =
+      "Aucune publication.";
+
+  }
+
+}
     const resultsBox =
       $("#userSearchResults");
 
