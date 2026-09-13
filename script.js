@@ -9277,14 +9277,100 @@ $("#themeBtn")
 PARAMETRES
 ========================================================= */
 
+
+function openSettingsPage() {
+
+  const page =
+    $("#settingsPage");
+
+  if (!page) {
+    return;
+  }
+
+  page.hidden =
+    false;
+
+  document.body.style.overflow =
+    "hidden";
+
+
+  const email =
+    $("#settingsEmailValue");
+
+  if (email) {
+
+    email.textContent =
+      currentUser?.email ||
+      "";
+
+  }
+
+}
+
+
+function closeSettingsPage() {
+
+  const page =
+    $("#settingsPage");
+
+  if (page) {
+
+    page.hidden =
+      true;
+
+  }
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
 $("#settingsBtn")
+  ?.addEventListener(
+    "click",
+    openSettingsPage
+  );
+
+
+$("#settingsBackBtn")
+  ?.addEventListener(
+    "click",
+    closeSettingsPage
+  );
+
+
+$("#settingsEditProfileBtn")
   ?.addEventListener(
     "click",
     () => {
 
-      toast(
-        "Paramètres bientôt disponibles"
-      );
+      closeSettingsPage();
+
+      $("#editProfileBtn")
+        ?.click();
+
+    }
+  );
+
+
+$("#settingsLogoutBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      const confirmed =
+        window.confirm(
+          "Voulez-vous vous déconnecter ?"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      closeSettingsPage();
+
+      await logoutUser();
 
     }
   );
