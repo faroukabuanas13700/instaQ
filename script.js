@@ -9550,13 +9550,7 @@ $("#settingsPasswordBtn")
 
     }
   );
-$("#settingsPasswordBtn")
-  ?.addEventListener(
-    ...
-  );
 
-
-// COLLE ICI LE BLOC CONFIDENTIALITÉ //
 async function openPrivacyPage() {
 
   if (
