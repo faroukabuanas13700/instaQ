@@ -5427,25 +5427,37 @@ async function updateFollowButton(userId) {
   if (
     userId === currentUser.id
   ) {
-
     button.hidden = true;
     return;
-
   }
 
   button.hidden = false;
+  button.disabled = true;
 
   try {
 
     const {
-      data,
-      error
+      data: profile,
+      error: profileError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select("is_private")
+        .eq("id", userId)
+        .single();
+
+    if (profileError) {
+      throw profileError;
+    }
+
+
+    const {
+      data: follow,
+      error: followError
     } =
       await supabaseClient
         .from("follows")
-        .select(
-          "follower_id,following_id"
-        )
+        .select("follower_id,following_id")
         .eq(
           "follower_id",
           currentUser.id
@@ -5456,27 +5468,81 @@ async function updateFollowButton(userId) {
         )
         .maybeSingle();
 
-    if (error) {
-      throw error;
+    if (followError) {
+      throw followError;
     }
 
-    const following =
-      !!data;
 
-    button.dataset.following =
-      following
+    const {
+      data: request,
+      error: requestError
+    } =
+      await supabaseClient
+        .from("follow_requests")
+        .select("requester_id,target_id")
+        .eq(
+          "requester_id",
+          currentUser.id
+        )
+        .eq(
+          "target_id",
+          userId
+        )
+        .maybeSingle();
+
+    if (requestError) {
+      throw requestError;
+    }
+
+
+    const isPrivate =
+      profile?.is_private === true;
+
+
+    if (follow) {
+
+      button.dataset.followState =
+        "following";
+
+      button.textContent =
+        "Abonné(e)";
+
+      button.classList.add(
+        "following"
+      );
+
+    } else if (request) {
+
+      button.dataset.followState =
+        "pending";
+
+      button.textContent =
+        "Demande envoyée";
+
+      button.classList.add(
+        "following"
+      );
+
+    } else {
+
+      button.dataset.followState =
+        "none";
+
+      button.textContent =
+        "S’abonner";
+
+      button.classList.remove(
+        "following"
+      );
+
+    }
+
+
+    button.dataset.private =
+      isPrivate
         ? "true"
         : "false";
 
-    button.textContent =
-      following
-        ? "Abonné(e)"
-        : "S’abonner";
-
-    button.classList.toggle(
-      "following",
-      following
-    );
 
   } catch (error) {
 
@@ -5485,7 +5551,12 @@ async function updateFollowButton(userId) {
       error
     );
 
+  } finally {
+
+    button.disabled = false;
+
   }
+
 }
 
 
@@ -5507,11 +5578,16 @@ async function toggleFollow() {
 
   try {
 
-    const alreadyFollowing =
-      button.dataset.following ===
+    const state =
+      button.dataset.followState ||
+      "none";
+
+    const isPrivate =
+      button.dataset.private ===
       "true";
 
-    if (alreadyFollowing) {
+
+    if (state === "following") {
 
       const {
         error
@@ -5534,6 +5610,54 @@ async function toggleFollow() {
 
       toast(
         "Vous ne suivez plus ce compte"
+      );
+
+    } else if (state === "pending") {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("follow_requests")
+          .delete()
+          .eq(
+            "requester_id",
+            currentUser.id
+          )
+          .eq(
+            "target_id",
+            activeProfileId
+          );
+
+      if (error) {
+        throw error;
+      }
+
+      toast(
+        "Demande annulée"
+      );
+
+    } else if (isPrivate) {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("follow_requests")
+          .insert({
+            requester_id:
+              currentUser.id,
+
+            target_id:
+              activeProfileId
+          });
+
+      if (error) {
+        throw error;
+      }
+
+      toast(
+        "Demande d’abonnement envoyée"
       );
 
     } else {
@@ -5561,6 +5685,7 @@ async function toggleFollow() {
 
     }
 
+
     await updateFollowButton(
       activeProfileId
     );
@@ -5568,6 +5693,7 @@ async function toggleFollow() {
     await loadFollowCounts(
       activeProfileId
     );
+
 
   } catch (error) {
 
