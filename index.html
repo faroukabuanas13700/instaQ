@@ -988,6 +988,70 @@ id="notificationsBtn"
     class="toast"
     id="toast"
   ></div>
+<!-- COMMENTAIRES -->
+<div
+  id="commentsOverlay"
+  class="comments-overlay"
+  hidden
+>
+  <section class="comments-sheet">
+
+    <div class="comments-handle"></div>
+
+    <header class="comments-header">
+      <h2>Commentaires</h2>
+
+      <button
+        id="commentsCloseBtn"
+        type="button"
+        aria-label="Fermer"
+      >
+        ×
+      </button>
+    </header>
+
+    <div
+      id="commentsList"
+      class="comments-list"
+    ></div>
+
+    <div
+      id="commentsEmpty"
+      class="comments-empty"
+      hidden
+    >
+      Aucun commentaire pour le moment.
+    </div>
+
+    <form
+      id="commentForm"
+      class="comments-form"
+    >
+      <div
+        id="commentCurrentAvatar"
+        class="comment-current-avatar"
+      >
+        👤
+      </div>
+
+      <input
+        id="commentInput"
+        type="text"
+        maxlength="1000"
+        placeholder="Qu’en pensez-vous ?"
+        autocomplete="off"
+      >
+
+      <button
+        id="commentSendBtn"
+        type="submit"
+      >
+        Publier
+      </button>
+    </form>
+
+  </section>
+</div>
 <!-- MENU OPTIONS PUBLICATION -->
 <div
   id="postMenuOverlay"
