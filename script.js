@@ -128,9 +128,11 @@ function showApp() {
   if (app) {
     app.hidden = false;
   }
-}
-if (currentUser) {
-  startNotificationsRealtime();
+
+  if (currentUser) {
+    startNotificationsRealtime();
+  }
+
 }
 
 /* =========================================================
@@ -9383,5 +9385,3 @@ async function initializeApp() {
 
 initializeApp();
 
-
-initializeApp();
