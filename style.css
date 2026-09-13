@@ -3216,3 +3216,37 @@ DEMANDES D'ABONNEMENT
   }
 
 }
+
+.private-profile-message{
+  padding:48px 20px 60px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+}
+
+.private-profile-lock{
+  width:72px;
+  height:72px;
+  border:2px solid #fff;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  margin-bottom:4px;
+}
+
+.private-profile-message strong{
+  font-size:20px;
+  font-weight:700;
+  color:#fff;
+}
+
+.private-profile-message span{
+  max-width:320px;
+  font-size:14px;
+  line-height:1.45;
+  color:#9aa0a6;
+}
