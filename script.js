@@ -129,7 +129,9 @@ function showApp() {
     app.hidden = false;
   }
 }
-
+if (currentUser) {
+  startNotificationsRealtime();
+}
 
 /* =========================================================
 ETAT UTILISATEUR
@@ -617,7 +619,7 @@ async function logoutUser() {
       throw error;
     }
 
-
+stopNotificationsRealtime();
     currentUser = null;
 
 
@@ -8283,6 +8285,216 @@ async function showHomeFeed() {
 PAGE NOTIFICATIONS
 ========================================================= */
 
+let notificationsRealtimeChannel =
+  null;
+
+
+async function refreshNotificationBadge() {
+
+  const badge =
+    $("#notificationBadge");
+
+
+  if (
+    !badge ||
+    !supabaseClient ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      count,
+      error
+    } =
+      await supabaseClient
+        .from("notifications")
+        .select(
+          "id",
+          {
+            count:"exact",
+            head:true
+          }
+        )
+        .eq(
+          "recipient_id",
+          currentUser.id
+        )
+        .eq(
+          "is_read",
+          false
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const total =
+      count || 0;
+
+
+    if (total === 0) {
+
+      badge.hidden =
+        true;
+
+      badge.textContent =
+        "0";
+
+      return;
+    }
+
+
+    badge.hidden =
+      false;
+
+
+    badge.textContent =
+      total > 99
+        ? "99+"
+        : String(total);
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur compteur notifications :",
+      error
+    );
+
+  }
+
+}
+
+
+function stopNotificationsRealtime() {
+
+  if (
+    notificationsRealtimeChannel &&
+    supabaseClient
+  ) {
+
+    supabaseClient.removeChannel(
+      notificationsRealtimeChannel
+    );
+
+  }
+
+
+  notificationsRealtimeChannel =
+    null;
+
+}
+
+
+function startNotificationsRealtime() {
+
+  if (
+    !supabaseClient ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  stopNotificationsRealtime();
+
+
+  refreshNotificationBadge();
+
+
+  notificationsRealtimeChannel =
+    supabaseClient
+      .channel(
+        "notifications-" +
+        currentUser.id +
+        "-" +
+        Date.now()
+      )
+      .on(
+        "postgres_changes",
+
+        {
+          event:"INSERT",
+
+          schema:"public",
+
+          table:"notifications",
+
+          filter:
+            `recipient_id=eq.${currentUser.id}`
+        },
+
+        payload => {
+
+          console.log(
+            "Nouvelle notification :",
+            payload
+          );
+
+
+          refreshNotificationBadge();
+
+        }
+      )
+      .subscribe();
+
+}
+
+
+async function markAllNotificationsRead() {
+
+  if (
+    !supabaseClient ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("notifications")
+        .update({
+          is_read:true
+        })
+        .eq(
+          "recipient_id",
+          currentUser.id
+        )
+        .eq(
+          "is_read",
+          false
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    await refreshNotificationBadge();
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur lecture notifications :",
+      error
+    );
+
+  }
+
+}
 
         async function loadNotifications() {
 
@@ -8848,8 +9060,9 @@ async function showNotificationsPage() {
   }
 
 
-  await loadNotifications();
+  await markAllNotificationsRead();
 
+await loadNotifications();
 
   window.scrollTo({
     top: 0,
