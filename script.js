@@ -9933,23 +9933,15 @@ function renderNewMessageUsers(
 
 
       row.addEventListener(
-        "click",
-        () => {
+  "click",
+  () => {
 
-          row.dataset.userId =
-            profile.id;
+    openChatWithUser(
+      profile
+    );
 
-          toast(
-            "Utilisateur sélectionné"
-          );
-
-          console.log(
-            "Conversation avec :",
-            profile
-          );
-
-        }
-      );
+  }
+);
 
 
       results.appendChild(
@@ -10087,6 +10079,60 @@ $("#newMessageSearchInput")
           },
           250
         );
+
+    }
+  );
+$("#chatBackBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      const chatPage =
+        $("#chatPage");
+
+      const messagesPage =
+        $("#messagesPage");
+
+      if (chatPage) {
+        chatPage.hidden = true;
+      }
+
+      if (messagesPage) {
+        messagesPage.hidden = false;
+      }
+
+    }
+  );
+
+
+$("#chatViewProfileBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      if (!activeChatUser?.id) {
+        return;
+      }
+
+      const chatPage =
+        $("#chatPage");
+
+      const messagesPage =
+        $("#messagesPage");
+
+      if (chatPage) {
+        chatPage.hidden = true;
+      }
+
+      if (messagesPage) {
+        messagesPage.hidden = true;
+      }
+
+      await showProfileInterface();
+
+      await openUserProfile(
+        activeChatUser.id
+      );
 
     }
   );
