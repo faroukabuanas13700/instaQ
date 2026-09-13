@@ -9729,6 +9729,270 @@ async function getLocalConversation(
   );
 
 }
+function scrollChatToBottom() {
+
+  const box =
+    $("#chatMessages");
+
+  if (!box) {
+    return;
+  }
+
+  box.scrollTop =
+    box.scrollHeight;
+}
+
+
+function renderChatMessage(
+  message
+) {
+
+  const box =
+    $("#chatMessages");
+
+  if (
+    !box ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  const row =
+    document.createElement(
+      "div"
+    );
+
+  const mine =
+    message.sender_id ===
+    currentUser.id;
+
+
+  row.className =
+    "chat-message " +
+    (
+      mine
+        ? "mine"
+        : "theirs"
+    );
+
+
+  const bubble =
+    document.createElement(
+      "div"
+    );
+
+  bubble.className =
+    "chat-bubble";
+
+  bubble.textContent =
+    message.content || "";
+
+
+  row.appendChild(
+    bubble
+  );
+
+  box.appendChild(
+    row
+  );
+
+
+  scrollChatToBottom();
+
+}
+
+
+async function loadLocalChat(
+  otherUserId
+) {
+
+  if (
+    !currentUser ||
+    !otherUserId
+  ) {
+    return;
+  }
+
+
+  const box =
+    $("#chatMessages");
+
+  if (!box) {
+    return;
+  }
+
+
+  try {
+
+    const messages =
+      await getLocalConversation(
+        currentUser.id,
+        otherUserId
+      );
+
+
+    box.innerHTML = "";
+
+
+    messages.forEach(
+      message => {
+
+        renderChatMessage(
+          message
+        );
+
+      }
+    );
+
+
+    scrollChatToBottom();
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur historique local :",
+      error
+    );
+
+  }
+
+}
+
+
+async function sendTextMessage(
+  text
+) {
+
+  if (
+    !currentUser ||
+    !activeChatUser?.id ||
+    !supabaseClient
+  ) {
+    return;
+  }
+
+
+  const content =
+    text.trim();
+
+  if (!content) {
+    return;
+  }
+
+
+  const message = {
+
+    local_id:
+      crypto.randomUUID(),
+
+    sender_id:
+      currentUser.id,
+
+    recipient_id:
+      activeChatUser.id,
+
+    message_type:
+      "text",
+
+    content,
+
+    created_at:
+      new Date().toISOString()
+
+  };
+
+
+  try {
+
+    /* SAUVEGARDE SUR LE TÉLÉPHONE */
+
+    await saveLocalMessage(
+      message
+    );
+
+
+    /* AFFICHAGE IMMÉDIAT */
+
+    renderChatMessage(
+      message
+    );
+
+
+    /* BOÎTE TEMPORAIRE SUPABASE */
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("pending_messages")
+        .insert({
+          sender_id:
+            message.sender_id,
+
+          recipient_id:
+            message.recipient_id,
+
+          message_type:
+            "text",
+
+          content:
+            message.content
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur envoi message :",
+      error
+    );
+
+    toast(
+      "Impossible d’envoyer le message"
+    );
+
+  }
+
+}
+
+
+$("#chatForm")
+  ?.addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      const input =
+        $("#chatInput");
+
+
+      const content =
+        input?.value || "";
+
+
+      if (!content.trim()) {
+        return;
+      }
+
+
+      input.value = "";
+
+
+      await sendTextMessage(
+        content
+      );
+
+    }
+  );
 /* =========================================================
 NAVIGATION BAS
 ========================================================= */ 
@@ -10078,7 +10342,9 @@ function openChatWithUser(
   if (messages) {
     messages.innerHTML = "";
   }
-
+loadLocalChat(
+  profile.id
+);
 
   setTimeout(
     () => {
