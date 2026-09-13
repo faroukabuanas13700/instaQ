@@ -2343,20 +2343,37 @@ NOTIFICATIONS
   color:#8e9298;
   font-size:14px;
 }
-.bottom-profile-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-  border: 2px solid transparent;
+
+/* PHOTO DE PROFIL DANS LA BARRE DU BAS */
+
+#bottomProfileBtn {
+  overflow: hidden;
+}
+
+#bottomProfileBtn .bottom-profile-avatar {
+  width: 30px !important;
+  height: 30px !important;
+
+  min-width: 30px !important;
+  min-height: 30px !important;
+
+  max-width: 30px !important;
+  max-height: 30px !important;
+
+  border-radius: 50% !important;
+  object-fit: cover !important;
+
+  display: block !important;
+  flex: 0 0 30px !important;
+
+  margin: 0 auto !important;
 }
 
 #bottomProfileBtn.active .bottom-profile-avatar {
-  border-color: #fff;
+  border: 2px solid #fff !important;
 }
 
-.bottom-profile-fallback {
+#bottomProfileBtn .bottom-profile-fallback {
   font-size: 25px;
   line-height: 1;
 }
