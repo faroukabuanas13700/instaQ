@@ -2343,3 +2343,20 @@ NOTIFICATIONS
   color:#8e9298;
   font-size:14px;
 }
+.bottom-profile-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 2px solid transparent;
+}
+
+#bottomProfileBtn.active .bottom-profile-avatar {
+  border-color: #fff;
+}
+
+.bottom-profile-fallback {
+  font-size: 25px;
+  line-height: 1;
+}
