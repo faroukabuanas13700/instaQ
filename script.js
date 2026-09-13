@@ -2846,6 +2846,465 @@ async function like(
     );
   }
 }
+
+/* =========================================================
+OPTIONS PUBLICATION
+========================================================= */
+
+let selectedPostForMenu =
+  null;
+
+
+function getPostOwnerId(post) {
+
+  return (
+    post?.userId ||
+    activeProfileId ||
+    currentUser?.id ||
+    null
+  );
+
+}
+
+
+function isOwnPost(post) {
+
+  if (
+    !post ||
+    !currentUser
+  ) {
+    return false;
+  }
+
+  return (
+    getPostOwnerId(post) ===
+    currentUser.id
+  );
+
+}
+
+
+function openPostMenu(post) {
+
+  if (!isOwnPost(post)) {
+    return;
+  }
+
+  selectedPostForMenu =
+    post;
+
+  const overlay =
+    $("#postMenuOverlay");
+
+  if (overlay) {
+    overlay.hidden =
+      false;
+  }
+
+}
+
+
+function closePostMenu() {
+
+  const overlay =
+    $("#postMenuOverlay");
+
+  if (overlay) {
+    overlay.hidden =
+      true;
+  }
+
+}
+
+
+function addPostOptionsButton(
+  container,
+  post
+) {
+
+  if (!container) {
+    return;
+  }
+
+
+  container
+    .querySelector(
+      ".post-options-btn"
+    )
+    ?.remove();
+
+
+  if (!isOwnPost(post)) {
+    return;
+  }
+
+
+  const button =
+    document.createElement(
+      "button"
+    );
+
+
+  button.type =
+    "button";
+
+  button.className =
+    "post-options-btn";
+
+
+  button.setAttribute(
+    "aria-label",
+    "Options de la publication"
+  );
+
+
+  button.innerHTML =
+    `
+    <span
+      class="post-options-lines"
+    ></span>
+    `;
+
+
+  button.addEventListener(
+    "click",
+    event => {
+
+      event.preventDefault();
+
+      event.stopPropagation();
+
+      openPostMenu(
+        post
+      );
+
+    }
+  );
+
+
+  container.appendChild(
+    button
+  );
+
+}
+
+
+function updatePostCaptionLocally(
+  postId,
+  caption
+) {
+
+  const update =
+    post => {
+
+      if (
+        post &&
+        post.id == postId
+      ) {
+
+        post.caption =
+          caption;
+
+      }
+
+    };
+
+
+  state.posts.forEach(
+    update
+  );
+
+  explorePosts.forEach(
+    update
+  );
+
+  homeFeedPosts.forEach(
+    update
+  );
+
+
+  if (
+    currentReelPost &&
+    currentReelPost.id == postId
+  ) {
+
+    currentReelPost.caption =
+      caption;
+
+  }
+
+}
+
+
+/* MODIFIER */
+
+$("#editPostMenuBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      const post =
+        selectedPostForMenu;
+
+
+      if (!isOwnPost(post)) {
+        return;
+      }
+
+
+      closePostMenu();
+
+
+      const oldCaption =
+        post.caption ||
+        "";
+
+
+      const newCaption =
+        window.prompt(
+          "Modifier la légende :",
+          oldCaption
+        );
+
+
+      if (
+        newCaption ===
+        null
+      ) {
+        return;
+      }
+
+
+      try {
+
+        const caption =
+          newCaption.trim();
+
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from("posts")
+            .update({
+              caption
+            })
+            .eq(
+              "id",
+              post.id
+            )
+            .eq(
+              "user_id",
+              currentUser.id
+            );
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        updatePostCaptionLocally(
+          post.id,
+          caption
+        );
+
+
+        save();
+
+        renderGrid();
+
+
+        if (
+          currentReelPost &&
+          currentReelPost.id ==
+            post.id &&
+          $("#reelsCaption")
+        ) {
+
+          $("#reelsCaption")
+            .textContent =
+            caption;
+
+        }
+
+
+        toast(
+          "Publication modifiée"
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Erreur modification publication :",
+          error
+        );
+
+        toast(
+          "Impossible de modifier la publication"
+        );
+
+      }
+
+    }
+  );
+
+
+/* SUPPRIMER */
+
+$("#deletePostMenuBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      const post =
+        selectedPostForMenu;
+
+
+      if (!isOwnPost(post)) {
+        return;
+      }
+
+
+      const confirmed =
+        window.confirm(
+          "Supprimer définitivement cette publication ?"
+        );
+
+
+      if (!confirmed) {
+        return;
+      }
+
+
+      closePostMenu();
+
+
+      try {
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from("posts")
+            .delete()
+            .eq(
+              "id",
+              post.id
+            )
+            .eq(
+              "user_id",
+              currentUser.id
+            );
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        state.posts =
+          state.posts.filter(
+            item =>
+              item.id != post.id
+          );
+
+
+        explorePosts =
+          explorePosts.filter(
+            item =>
+              item.id != post.id
+          );
+
+
+        homeFeedPosts =
+          homeFeedPosts.filter(
+            item =>
+              item.id != post.id
+          );
+
+
+        save();
+
+        renderGrid();
+
+        renderProfile();
+
+
+        if (
+          currentReelPost &&
+          currentReelPost.id ==
+            post.id
+        ) {
+
+          closeReels();
+
+        }
+
+
+        const viewer =
+          $("#viewer");
+
+        if (
+          viewer?.classList
+            .contains("open")
+        ) {
+
+          closeViewer();
+
+        }
+
+
+        toast(
+          "Publication supprimée"
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Erreur suppression publication :",
+          error
+        );
+
+        toast(
+          "Impossible de supprimer la publication"
+        );
+
+      }
+
+    }
+  );
+
+
+$("#closePostMenuBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      closePostMenu();
+
+    }
+  );
+
+
+$("#postMenuOverlay")
+  ?.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target.id ===
+        "postMenuOverlay"
+      ) {
+
+        closePostMenu();
+
+      }
+
+    }
+  );
 /* =========================================================
 REELS
 ========================================================= */
@@ -2879,6 +3338,11 @@ let currentReelPost = null;
   }
 
   currentReelPost = post;
+
+addPostOptionsButton(
+  page,
+  post
+);
 
   page.hidden = false;
   page.removeAttribute("hidden");
@@ -3317,6 +3781,10 @@ function showViewerPost() {
     element
   );
 
+addPostOptionsButton(
+  $("#viewer"),
+  post
+);
 
   if (
     post.type ===
