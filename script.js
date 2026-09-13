@@ -3311,7 +3311,233 @@ REELS
 
 let currentReelPost = null;
 
+let currentReelOwnerId = null;
 
+
+async function updateReelsFollowButton(
+  userId
+) {
+
+  const button =
+    $("#reelsFollowBtn");
+
+  if (
+    !button ||
+    !currentUser ||
+    !userId
+  ) {
+    return;
+  }
+
+
+  /* Ne pas afficher Suivre sur son propre Reel */
+
+  if (
+    userId ===
+    currentUser.id
+  ) {
+
+    button.hidden = true;
+
+    return;
+  }
+
+
+  button.hidden = false;
+  button.disabled = true;
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("follows")
+        .select(
+          "follower_id,following_id"
+        )
+        .eq(
+          "follower_id",
+          currentUser.id
+        )
+        .eq(
+          "following_id",
+          userId
+        )
+        .maybeSingle();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const following =
+      !!data;
+
+
+    button.dataset.following =
+      following
+        ? "true"
+        : "false";
+
+
+    button.textContent =
+      following
+        ? "Suivi"
+        : "Suivre";
+
+
+    button.classList.toggle(
+      "following",
+      following
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur abonnement Reel :",
+      error
+    );
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+async function toggleReelsFollow() {
+
+  const button =
+    $("#reelsFollowBtn");
+
+
+  if (
+    !button ||
+    !currentUser ||
+    !currentReelOwnerId ||
+    currentReelOwnerId ===
+      currentUser.id
+  ) {
+    return;
+  }
+
+
+  button.disabled = true;
+
+
+  try {
+
+    const following =
+      button.dataset.following ===
+      "true";
+
+
+    if (following) {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("follows")
+          .delete()
+          .eq(
+            "follower_id",
+            currentUser.id
+          )
+          .eq(
+            "following_id",
+            currentReelOwnerId
+          );
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      button.dataset.following =
+        "false";
+
+      button.textContent =
+        "Suivre";
+
+      button.classList.remove(
+        "following"
+      );
+
+
+    } else {
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("follows")
+          .insert({
+            follower_id:
+              currentUser.id,
+
+            following_id:
+              currentReelOwnerId
+          });
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      button.dataset.following =
+        "true";
+
+      button.textContent =
+        "Suivi";
+
+      button.classList.add(
+        "following"
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur clic Suivre Reel :",
+      error
+    );
+
+    toast(
+      "Impossible de modifier l’abonnement"
+    );
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+$("#reelsFollowBtn")
+  ?.addEventListener(
+    "click",
+    async event => {
+
+      event.stopPropagation();
+
+      await toggleReelsFollow();
+
+    }
+  );
       async function openReels(post) {
 
   console.log("Ouverture Reel :", post);
@@ -3403,6 +3629,13 @@ addPostOptionsButton(
     post.userId ||
     activeProfileId ||
     currentUser?.id;
+
+currentReelOwnerId =
+  profileId;
+
+await updateReelsFollowButton(
+  profileId
+);
 
   if (
     profileId &&
@@ -3553,6 +3786,9 @@ function closeReels() {
 
   currentReelPost =
     null;
+
+currentReelOwnerId =
+  null;
 
 }
 $("#reelsBackBtn")
