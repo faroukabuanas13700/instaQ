@@ -9586,6 +9586,367 @@ $("#messagesBackBtn")
 
     }
   );
+/* =========================================================
+NOUVEAU MESSAGE
+========================================================= */
+
+let newMessageSearchTimer = null;
+
+
+function openNewMessagePage() {
+
+  const messagesPage =
+    $("#messagesPage");
+
+  const newMessagePage =
+    $("#newMessagePage");
+
+  const input =
+    $("#newMessageSearchInput");
+
+  const results =
+    $("#newMessageResults");
+
+
+  if (!newMessagePage) {
+    return;
+  }
+
+
+  if (messagesPage) {
+    messagesPage.hidden = true;
+  }
+
+  newMessagePage.hidden = false;
+
+
+  if (input) {
+    input.value = "";
+  }
+
+  if (results) {
+    results.innerHTML =
+      `
+      <div class="new-message-empty">
+        Recherchez une personne pour commencer une conversation.
+      </div>
+      `;
+  }
+
+
+  setTimeout(
+    () => {
+      input?.focus();
+    },
+    200
+  );
+
+}
+
+
+function closeNewMessagePage() {
+
+  const messagesPage =
+    $("#messagesPage");
+
+  const newMessagePage =
+    $("#newMessagePage");
+
+
+  if (newMessagePage) {
+    newMessagePage.hidden = true;
+  }
+
+  if (messagesPage) {
+    messagesPage.hidden = false;
+  }
+
+}
+
+
+function renderNewMessageUsers(
+  users
+) {
+
+  const results =
+    $("#newMessageResults");
+
+  if (!results) {
+    return;
+  }
+
+  results.innerHTML = "";
+
+
+  if (!users.length) {
+
+    results.innerHTML =
+      `
+      <div class="new-message-empty">
+        Aucun utilisateur trouvé.
+      </div>
+      `;
+
+    return;
+  }
+
+
+  users.forEach(
+    profile => {
+
+      const row =
+        document.createElement(
+          "div"
+        );
+
+      row.className =
+        "new-message-user";
+
+
+      const avatar =
+        document.createElement(
+          "div"
+        );
+
+      avatar.className =
+        "new-message-avatar";
+
+
+      if (profile.avatar_url) {
+
+        const img =
+          document.createElement(
+            "img"
+          );
+
+        img.src =
+          profile.avatar_url;
+
+        img.alt =
+          profile.username || "";
+
+        avatar.appendChild(
+          img
+        );
+
+      } else {
+
+        avatar.textContent =
+          "👤";
+
+      }
+
+
+      const text =
+        document.createElement(
+          "div"
+        );
+
+      text.className =
+        "new-message-user-text";
+
+
+      const username =
+        document.createElement(
+          "div"
+        );
+
+      username.className =
+        "new-message-user-username";
+
+      username.textContent =
+        profile.username ||
+        "Utilisateur";
+
+
+      const name =
+        document.createElement(
+          "div"
+        );
+
+      name.className =
+        "new-message-user-name";
+
+      name.textContent =
+        profile.name || "";
+
+
+      text.appendChild(
+        username
+      );
+
+      text.appendChild(
+        name
+      );
+
+
+      row.appendChild(
+        avatar
+      );
+
+      row.appendChild(
+        text
+      );
+
+
+      row.addEventListener(
+        "click",
+        () => {
+
+          row.dataset.userId =
+            profile.id;
+
+          toast(
+            "Utilisateur sélectionné"
+          );
+
+          console.log(
+            "Conversation avec :",
+            profile
+          );
+
+        }
+      );
+
+
+      results.appendChild(
+        row
+      );
+
+    }
+  );
+
+}
+
+
+async function searchMessageUsers(
+  query
+) {
+
+  if (
+    !supabaseClient ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  const search =
+    query.trim();
+
+  const results =
+    $("#newMessageResults");
+
+
+  if (!results) {
+    return;
+  }
+
+
+  if (search.length < 2) {
+
+    results.innerHTML =
+      `
+      <div class="new-message-empty">
+        Recherchez une personne pour commencer une conversation.
+      </div>
+      `;
+
+    return;
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,avatar_url"
+        )
+        .neq(
+          "id",
+          currentUser.id
+        )
+        .or(
+          `username.ilike.%${search}%,name.ilike.%${search}%`
+        )
+        .limit(30);
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    renderNewMessageUsers(
+      data || []
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Erreur recherche messagerie :",
+      error
+    );
+
+    results.innerHTML =
+      `
+      <div class="new-message-empty">
+        Impossible d’effectuer la recherche.
+      </div>
+      `;
+
+  }
+
+}
+
+
+$("#newMessageBtn")
+  ?.addEventListener(
+    "click",
+    openNewMessagePage
+  );
+
+
+$("#newMessageBackBtn")
+  ?.addEventListener(
+    "click",
+    closeNewMessagePage
+  );
+
+
+$("#newMessageSearchInput")
+  ?.addEventListener(
+    "input",
+    event => {
+
+      clearTimeout(
+        newMessageSearchTimer
+      );
+
+      const value =
+        event.target.value;
+
+
+      newMessageSearchTimer =
+        setTimeout(
+          () => {
+
+            searchMessageUsers(
+              value
+            );
+
+          },
+          250
+        );
+
+    }
+  );
 
 $("#bottomProfileBtn")
   ?.addEventListener(
