@@ -9550,6 +9550,204 @@ $("#settingsPasswordBtn")
 
     }
   );
+$("#settingsPasswordBtn")
+  ?.addEventListener(
+    ...
+  );
+
+
+// COLLE ICI LE BLOC CONFIDENTIALITÉ //
+async function openPrivacyPage() {
+
+  if (
+    !supabaseClient ||
+    !currentUser
+  ) {
+    return;
+  }
+
+  const page =
+    $("#privacyPage");
+
+  const toggle =
+    $("#privateAccountToggle");
+
+  if (
+    !page ||
+    !toggle
+  ) {
+    return;
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select("is_private")
+        .eq(
+          "id",
+          currentUser.id
+        )
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    toggle.checked =
+      data?.is_private === true;
+
+    const privacyValue =
+      $("#settingsPrivacyValue");
+
+    if (privacyValue) {
+
+      privacyValue.textContent =
+        toggle.checked
+          ? "Privé"
+          : "Public";
+
+    }
+
+    closeSettingsPage();
+
+    page.hidden =
+      false;
+
+    document.body.style.overflow =
+      "hidden";
+
+  } catch (error) {
+
+    console.error(
+      "Erreur confidentialité :",
+      error
+    );
+
+    toast(
+      "Impossible de charger la confidentialité"
+    );
+
+  }
+
+}
+
+
+function closePrivacyPage() {
+
+  const page =
+    $("#privacyPage");
+
+  if (page) {
+    page.hidden = true;
+  }
+
+  openSettingsPage();
+
+}
+
+
+$("#settingsPrivacyBtn")
+  ?.addEventListener(
+    "click",
+    openPrivacyPage
+  );
+
+
+$("#privacyBackBtn")
+  ?.addEventListener(
+    "click",
+    closePrivacyPage
+  );
+
+
+$("#privateAccountToggle")
+  ?.addEventListener(
+    "change",
+    async event => {
+
+      if (
+        !supabaseClient ||
+        !currentUser
+      ) {
+        return;
+      }
+
+      const toggle =
+        event.target;
+
+      const isPrivate =
+        toggle.checked;
+
+      toggle.disabled =
+        true;
+
+      try {
+
+        const {
+          error
+        } =
+          await supabaseClient
+            .from("profiles")
+            .update({
+              is_private:
+                isPrivate
+            })
+            .eq(
+              "id",
+              currentUser.id
+            );
+
+        if (error) {
+          throw error;
+        }
+
+        const privacyValue =
+          $("#settingsPrivacyValue");
+
+        if (privacyValue) {
+
+          privacyValue.textContent =
+            isPrivate
+              ? "Privé"
+              : "Public";
+
+        }
+
+        toast(
+          isPrivate
+            ? "Compte passé en privé"
+            : "Compte passé en public"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Erreur changement confidentialité :",
+          error
+        );
+
+        toggle.checked =
+          !isPrivate;
+
+        toast(
+          "Impossible de modifier la confidentialité"
+        );
+
+      } finally {
+
+        toggle.disabled =
+          false;
+
+      }
+
+    }
+  );
+
 
 $("#settingsLogoutBtn")
   ?.addEventListener(
