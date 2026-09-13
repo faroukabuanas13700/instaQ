@@ -9447,6 +9447,289 @@ $("#notificationsBackBtn")
     }
   );
 /* =========================================================
+MESSAGERIE - STOCKAGE LOCAL INDEXEDDB
+========================================================= */
+
+const MESSAGES_DB_NAME =
+  "extazeMessages";
+
+const MESSAGES_DB_VERSION =
+  1;
+
+const MESSAGES_STORE =
+  "messages";
+
+
+function getConversationId(
+  userA,
+  userB
+) {
+
+  return [
+    userA,
+    userB
+  ]
+    .sort()
+    .join("__");
+
+}
+
+
+function openMessagesDB() {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const request =
+        indexedDB.open(
+          MESSAGES_DB_NAME,
+          MESSAGES_DB_VERSION
+        );
+
+
+      request.onupgradeneeded =
+        event => {
+
+          const db =
+            event.target.result;
+
+
+          if (
+            !db.objectStoreNames
+              .contains(
+                MESSAGES_STORE
+              )
+          ) {
+
+            const store =
+              db.createObjectStore(
+                MESSAGES_STORE,
+                {
+                  keyPath:
+                    "local_id"
+                }
+              );
+
+
+            store.createIndex(
+              "conversation_id",
+              "conversation_id",
+              {
+                unique:false
+              }
+            );
+
+
+            store.createIndex(
+              "created_at",
+              "created_at",
+              {
+                unique:false
+              }
+            );
+
+          }
+
+        };
+
+
+      request.onsuccess =
+        () => {
+
+          resolve(
+            request.result
+          );
+
+        };
+
+
+      request.onerror =
+        () => {
+
+          reject(
+            request.error
+          );
+
+        };
+
+    }
+  );
+
+}
+
+
+async function saveLocalMessage(
+  message
+) {
+
+  if (
+    !message?.sender_id ||
+    !message?.recipient_id
+  ) {
+    return;
+  }
+
+
+  const db =
+    await openMessagesDB();
+
+
+  const localId =
+    message.local_id ||
+    message.server_id ||
+    crypto.randomUUID();
+
+
+  const record = {
+
+    ...message,
+
+    local_id:
+      localId,
+
+    conversation_id:
+      getConversationId(
+        message.sender_id,
+        message.recipient_id
+      ),
+
+    message_type:
+      message.message_type ||
+      "text",
+
+    created_at:
+      message.created_at ||
+      new Date().toISOString()
+
+  };
+
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const transaction =
+        db.transaction(
+          MESSAGES_STORE,
+          "readwrite"
+        );
+
+      const store =
+        transaction.objectStore(
+          MESSAGES_STORE
+        );
+
+
+      store.put(
+        record
+      );
+
+
+      transaction.oncomplete =
+        () => {
+
+          resolve(
+            record
+          );
+
+        };
+
+
+      transaction.onerror =
+        () => {
+
+          reject(
+            transaction.error
+          );
+
+        };
+
+    }
+  );
+
+}
+
+
+async function getLocalConversation(
+  userA,
+  userB
+) {
+
+  const db =
+    await openMessagesDB();
+
+
+  const conversationId =
+    getConversationId(
+      userA,
+      userB
+    );
+
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const transaction =
+        db.transaction(
+          MESSAGES_STORE,
+          "readonly"
+        );
+
+      const store =
+        transaction.objectStore(
+          MESSAGES_STORE
+        );
+
+      const index =
+        store.index(
+          "conversation_id"
+        );
+
+
+      const request =
+        index.getAll(
+          conversationId
+        );
+
+
+      request.onsuccess =
+        () => {
+
+          const messages =
+            request.result || [];
+
+
+          messages.sort(
+            (a, b) =>
+              new Date(
+                a.created_at
+              ) -
+              new Date(
+                b.created_at
+              )
+          );
+
+
+          resolve(
+            messages
+          );
+
+        };
+
+
+      request.onerror =
+        () => {
+
+          reject(
+            request.error
+          );
+
+        };
+
+    }
+  );
+
+}
+/* =========================================================
 NAVIGATION BAS
 ========================================================= */ 
 
