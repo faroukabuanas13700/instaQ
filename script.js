@@ -10275,29 +10275,46 @@ async function receivePendingMessage(
     );
 
 
-    /* SI LA CONVERSATION EST OUVERTE */
+    /* METTRE À JOUR LA LISTE DES CONVERSATIONS */
 
-    if (
-      activeChatUser?.id ===
-        row.sender_id &&
-      $("#chatPage") &&
-      !$("#chatPage").hidden
-    ) {
+await loadMessagesList();
 
-      renderChatMessage(
-        message
-      );
 
-    } else {
+/* SI LA CONVERSATION EST OUVERTE */
 
-      /* NOUVEAU MESSAGE = ENVELOPPE ROUGE */
+if (
+  activeChatUser?.id ===
+    row.sender_id &&
+  $("#chatPage") &&
+  !$("#chatPage").hidden
+) {
 
-      setMessagesUnread(
-        true
-      );
+  renderChatMessage(
+    message
+  );
 
-    }
+} else {
 
+  const messagesPage =
+    $("#messagesPage");
+
+  const messagesPageOpen =
+    messagesPage &&
+    !messagesPage.hidden;
+
+
+  if (!messagesPageOpen) {
+
+    /* NOUVEAU MESSAGE = ENVELOPPE ROUGE */
+
+    setMessagesUnread(
+      true
+    );
+
+  }
+
+}
+    
 
     /* SUPPRIMER LA COPIE TEMPORAIRE SUPABASE */
 
