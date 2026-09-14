@@ -4571,7 +4571,70 @@ $("#reelsFollowBtn")
 
     }
   );
-      async function openReels(post) {
+function updateReelsSoundIcon() {
+
+  const button =
+    $("#reelsSoundBtn");
+
+  const video =
+    $("#reelsVideo");
+
+  if (
+    !button ||
+    !video
+  ) {
+    return;
+  }
+
+
+  button.innerHTML =
+    video.muted
+      ? `
+        <svg viewBox="0 0 24 24">
+          <path d="M4 10v4h4l5 4V6L8 10H4z"></path>
+          <path d="M17 9l4 6"></path>
+          <path d="M21 9l-4 6"></path>
+        </svg>
+      `
+      : `
+        <svg viewBox="0 0 24 24">
+          <path d="M4 10v4h4l5 4V6L8 10H4z"></path>
+          <path d="M16 9c1 1 1 5 0 6"></path>
+          <path d="M19 7c2 3 2 7 0 10"></path>
+        </svg>
+      `;
+
+}
+
+
+$("#reelsSoundBtn")
+  ?.addEventListener(
+    "click",
+    event => {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const video =
+        $("#reelsVideo");
+
+      if (!video) return;
+
+      video.muted =
+        !video.muted;
+
+      updateReelsSoundIcon();
+
+      video
+        .play()
+        .catch(() => {});
+
+    }
+  );
+      async function openReels(
+  post,
+  startWithSound = false
+) {
 
   console.log("Ouverture Reel :", post);
 
@@ -4638,7 +4701,10 @@ addPostOptionsButton(
     ""
   );
 
-  video.muted = true;
+  video.muted =
+  !startWithSound;
+
+updateReelsSoundIcon();
 
   video.load();
 
@@ -7116,8 +7182,9 @@ function renderExploreGrid(posts) {
     ) {
 
       await openReels(
-        post
-      );
+  post,
+  true
+);
 
       return;
     }
@@ -7190,7 +7257,7 @@ async function showExploreInterface() {
   const notificationsPage =
     $("#notificationsPage");
 
-  const followListPage =
+  consawaitlowListPage =
     $("#followListPage");
 
   const topbar =
