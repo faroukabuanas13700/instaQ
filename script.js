@@ -7167,7 +7167,9 @@ function playExploreVideos() {
 
 
 async function showExploreInterface() {
-
+saveCurrentView(
+  "explore"
+);
   const profilePage =
     $("#profilePage");
 
