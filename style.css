@@ -3900,3 +3900,32 @@ BOUTON SON FIL D'ACTUALITÉ
 .feed-sound-btn:active{
   transform:scale(.92);
 }
+.reels-sound-btn{
+  position:absolute;
+  right:16px;
+  bottom:90px;
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:50%;
+  padding:0;
+  background:rgba(20,20,20,.72);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:30;
+}
+
+.reels-sound-btn svg{
+  width:20px;
+  height:20px;
+  fill:#fff;
+  stroke:#fff;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.reels-sound-btn:active{
+  transform:scale(.92);
+}
