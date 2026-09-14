@@ -7222,7 +7222,11 @@ async function showExploreInterface() {
 
 
 async function showProfileInterface() {
-
+  
+saveCurrentView(
+  "profile"
+);
+  
   const profilePage =
     $("#profilePage");
 
@@ -8390,7 +8394,11 @@ async function loadHomeFeed() {
 
 
 async function showHomeFeed() {
-
+  
+saveCurrentView(
+  "home"
+);
+  
   const profilePage =
     $("#profilePage");
 
@@ -10480,6 +10488,73 @@ function startMessagesRealtime() {
       .subscribe();
 
 }
+function saveCurrentView(
+  view
+) {
+
+  if (!currentUser) {
+    return;
+  }
+
+  localStorage.setItem(
+    "extazeCurrentView:" +
+      currentUser.id,
+    view
+  );
+
+}
+
+
+function getCurrentView() {
+
+  if (!currentUser) {
+    return "profile";
+  }
+
+  return (
+    localStorage.getItem(
+      "extazeCurrentView:" +
+        currentUser.id
+    ) ||
+    "profile"
+  );
+
+}
+
+
+async function restoreCurrentView() {
+
+  const view =
+    getCurrentView();
+
+
+  if (view === "explore") {
+
+    await showExploreInterface();
+    return;
+
+  }
+
+
+  if (view === "messages") {
+
+    await showMessagesPage();
+    return;
+
+  }
+
+
+  if (view === "home") {
+
+    await showHomeFeed();
+    return;
+
+  }
+
+
+  await showProfileInterface();
+
+}
 /* =========================================================
 NAVIGATION BAS
 ========================================================= */ 
@@ -10524,7 +10599,11 @@ function setMessagesUnread(hasUnread) {
 
 
 async function showMessagesPage() {
-
+  
+saveCurrentView(
+  "messages"
+);
+  
   const messagesPage =
     $("#messagesPage");
 
@@ -11889,11 +11968,13 @@ async function initializeApp() {
 
     setOwnerMode(true);
 
-    showApp();
+showApp();
 
-    playGridVideos();
+await restoreCurrentView();
 
-  } catch (error) {
+playGridVideos();
+
+} catch (error) {
 
     console.error(
       "Erreur initialisation :",
