@@ -9734,6 +9734,235 @@ async function getLocalConversation(
   );
 
 }
+async function getAllLocalMessages() {
+
+  const db =
+    await openMessagesDB();
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const transaction =
+        db.transaction(
+          MESSAGES_STORE,
+          "readonly"
+        );
+
+      const store =
+        transaction.objectStore(
+          MESSAGES_STORE
+        );
+
+      const request =
+        store.getAll();
+
+      request.onsuccess =
+        () =>
+          resolve(
+            request.result || []
+          );
+
+      request.onerror =
+        () =>
+          reject(
+            request.error
+          );
+
+    }
+  );
+}
+
+
+async function loadMessagesList() {
+
+  if (
+    !currentUser ||
+    !supabaseClient
+  ) {
+    return;
+  }
+
+  const list =
+    $("#messagesList");
+
+  if (!list) return;
+
+  try {
+
+    const allMessages =
+      await getAllLocalMessages();
+
+    const messages =
+      allMessages.filter(
+        message =>
+          message.sender_id === currentUser.id ||
+          message.recipient_id === currentUser.id
+      );
+
+    if (!messages.length) {
+      return;
+    }
+
+    const conversations =
+      new Map();
+
+    messages.forEach(
+      message => {
+
+        const otherId =
+          message.sender_id === currentUser.id
+            ? message.recipient_id
+            : message.sender_id;
+
+        const oldMessage =
+          conversations.get(
+            otherId
+          );
+
+        if (
+          !oldMessage ||
+          new Date(message.created_at) >
+          new Date(oldMessage.created_at)
+        ) {
+          conversations.set(
+            otherId,
+            message
+          );
+        }
+
+      }
+    );
+
+    const ids =
+      [...conversations.keys()];
+
+    const {
+      data: profiles,
+      error
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id,username,name,avatar_url"
+        )
+        .in(
+          "id",
+          ids
+        );
+
+    if (error) {
+      throw error;
+    }
+
+    list.innerHTML = "";
+
+    (profiles || []).forEach(
+      profile => {
+
+        const message =
+          conversations.get(
+            profile.id
+          );
+
+        if (!message) return;
+
+        const row =
+          document.createElement(
+            "div"
+          );
+
+        row.className =
+          "messages-conversation";
+
+        const avatar =
+          document.createElement(
+            "div"
+          );
+
+        avatar.className =
+          "messages-conversation-avatar";
+
+        if (profile.avatar_url) {
+
+          const img =
+            document.createElement(
+              "img"
+            );
+
+          img.src =
+            profile.avatar_url;
+
+          avatar.appendChild(
+            img
+          );
+
+        } else {
+
+          avatar.textContent =
+            "👤";
+
+        }
+
+        const text =
+          document.createElement(
+            "div"
+          );
+
+        text.className =
+          "messages-conversation-text";
+
+        const name =
+          document.createElement(
+            "strong"
+          );
+
+        name.textContent =
+          profile.username ||
+          profile.name ||
+          "Utilisateur";
+
+        const preview =
+          document.createElement(
+            "span"
+          );
+
+        preview.textContent =
+          message.sender_id === currentUser.id
+            ? "Vous : " +
+              (message.content || "")
+            : message.content || "";
+
+        text.appendChild(name);
+        text.appendChild(preview);
+
+        row.appendChild(avatar);
+        row.appendChild(text);
+
+        row.addEventListener(
+          "click",
+          () => {
+
+            openChatWithUser(
+              profile
+            );
+
+          }
+        );
+
+        list.appendChild(row);
+
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Erreur liste conversations :",
+      error
+    );
+
+  }
+}
 function scrollChatToBottom() {
 
   const box =
@@ -10327,7 +10556,8 @@ async function showMessagesPage() {
   setMessagesUnread(
     false
   );
-
+await loadMessagesList();
+  
   $$(".bottom-nav-btn")
     .forEach(
       button => {
