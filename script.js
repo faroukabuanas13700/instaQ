@@ -8203,32 +8203,127 @@ async function loadHomeFeed() {
 
 
         if (
-          post.type === "video"
-        ) {
+  post.type === "video"
+) {
 
-          media.muted = true;
-          media.loop = true;
-          media.playsInline = true;
-          media.autoplay = true;
+  /* TOUJOURS MUET PAR DÉFAUT */
 
-          media
-            .play()
-            .catch(
-              () => {}
-            );
+  media.muted = true;
+  media.loop = true;
+  media.playsInline = true;
+  media.autoplay = true;
 
-          media.addEventListener(
-            "click",
-            () => {
 
-              openReels(
-                post
-              );
+  media
+    .play()
+    .catch(
+      () => {}
+    );
 
-            }
-          );
 
-        }
+  media.addEventListener(
+    "click",
+    () => {
+
+      openReels(
+        post
+      );
+
+    }
+  );
+
+
+  /* BOUTON SON */
+
+  const soundButton =
+    document.createElement(
+      "button"
+    );
+
+  soundButton.type =
+    "button";
+
+  soundButton.className =
+    "feed-sound-btn";
+
+  soundButton.setAttribute(
+    "aria-label",
+    "Activer ou couper le son"
+  );
+
+
+  function updateSoundIcon() {
+
+    soundButton.innerHTML =
+      media.muted
+        ? `
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M4 10v4h4l5 4V6L8 10H4z"
+            ></path>
+
+            <path
+              d="M17 9l4 6"
+            ></path>
+
+            <path
+              d="M21 9l-4 6"
+            ></path>
+          </svg>
+        `
+        : `
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M4 10v4h4l5 4V6L8 10H4z"
+            ></path>
+
+            <path
+              d="M16 9c1 1 1 5 0 6"
+            ></path>
+
+            <path
+              d="M19 7c2 3 2 7 0 10"
+            ></path>
+          </svg>
+        `;
+
+  }
+
+
+  updateSoundIcon();
+
+
+  soundButton.addEventListener(
+    "click",
+    event => {
+
+      event.preventDefault();
+
+      event.stopPropagation();
+
+
+      media.muted =
+        !media.muted;
+
+
+      updateSoundIcon();
+
+
+      media
+        .play()
+        .catch(
+          () => {}
+        );
+
+    }
+  );
+
+
+  mediaWrap.appendChild(
+    soundButton
+  );
+
+}
 
 
         const actions =
