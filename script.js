@@ -7167,9 +7167,11 @@ function playExploreVideos() {
 
 
 async function showExploreInterface() {
-saveCurrentView(
-  "explore"
-);
+
+  saveCurrentView(
+    "explore"
+  );
+
   const profilePage =
     $("#profilePage");
 
@@ -7179,8 +7181,37 @@ saveCurrentView(
   const explorePage =
     $("#explorePage");
 
+  const homeFeedPage =
+    $("#homeFeedPage");
+
+  const messagesPage =
+    $("#messagesPage");
+
+  const notificationsPage =
+    $("#notificationsPage");
+
+  const followListPage =
+    $("#followListPage");
+
   const topbar =
     $(".topbar");
+
+
+  if (homeFeedPage) {
+    homeFeedPage.hidden = true;
+  }
+
+  if (messagesPage) {
+    messagesPage.hidden = true;
+  }
+
+  if (notificationsPage) {
+    notificationsPage.hidden = true;
+  }
+
+  if (followListPage) {
+    followListPage.hidden = true;
+  }
 
   if (profilePage) {
     profilePage.hidden = true;
