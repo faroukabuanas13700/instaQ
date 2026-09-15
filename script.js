@@ -7701,7 +7701,12 @@ function renderExploreGrid(posts) {
       card.appendChild(
         media
       );
-
+if (
+  media.tagName === "IFRAME"
+) {
+  media.style.pointerEvents =
+    "none";
+}
       if (
         post.type === "video"
       ) {
