@@ -2614,8 +2614,8 @@ async function loadSupabasePosts() {
       await supabaseClient
         .from("posts")
         .select(
-          "id,user_id,type,media_url,caption,likes"
-        )
+  "id,user_id,type,source_type,media_url,caption,likes"
+)
         .eq(
           "user_id",
           currentUser.id
@@ -2647,7 +2647,9 @@ async function loadSupabasePosts() {
           type:
             post.type ||
             "image",
-
+sourceType:
+  post.source_type ||
+  "upload",
           src:
             post.media_url,
 
