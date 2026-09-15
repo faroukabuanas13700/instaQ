@@ -2105,6 +2105,13 @@ function renderGrid() {
         media
       );
 
+      if (
+  media.tagName === "IFRAME"
+) {
+
+  media.style.pointerEvents =
+    "none";
+}
 
       if (
         post.type ===
