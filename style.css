@@ -67,12 +67,12 @@ AUTH
 }
 
 .auth-logo{
-  font-family:"UnifrakturMaguntia",serif;
-  color:#fff;
-  font-size:56px;
-  font-weight:400;
-  line-height:1;
-  margin-bottom:14px;
+  display:block;
+  width:220px;
+  max-width:80%;
+  height:auto;
+  object-fit:contain;
+  margin:0 auto 20px;
 }
 
 .auth-subtitle{
