@@ -3929,3 +3929,13 @@ BOUTON SON FIL D'ACTUALITÉ
 .reels-sound-btn:active{
   transform:scale(.92);
 }
+/* LOGO STRYTSH - CONNEXION */
+
+#authScreen .auth-box img.auth-logo{
+  display:block !important;
+  width:160px !important;
+  max-width:160px !important;
+  height:auto !important;
+  margin:0 auto 18px !important;
+  object-fit:contain !important;
+}
