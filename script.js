@@ -1844,6 +1844,152 @@ function mediaElement(
   forViewer = false
 ) {
 
+  /* IFRAME / EMBED */
+
+  if (
+    post.sourceType ===
+    "embed"
+  ) {
+
+    const iframe =
+      document.createElement(
+        "iframe"
+      );
+
+    iframe.src =
+      post.src;
+
+    iframe.loading =
+      "lazy";
+
+    iframe.allowFullscreen =
+      true;
+
+    iframe.referrerPolicy =
+      "strict-origin-when-cross-origin";
+
+    iframe.setAttribute(
+      "allow",
+      "autoplay; fullscreen; picture-in-picture"
+    );
+
+    iframe.setAttribute(
+      "sandbox",
+      "allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+    );
+
+    iframe.style.border =
+      "0";
+
+    iframe.style.width =
+      "100%";
+
+    iframe.style.height =
+      "100%";
+
+    return iframe;
+
+  }
+
+
+  /* VIDEO */
+
+  if (
+    post.type ===
+    "video"
+  ) {
+
+    const video =
+      document.createElement(
+        "video"
+      );
+
+
+    video.src =
+      post.src;
+
+
+    video.loop =
+      true;
+
+
+    video.playsInline =
+      true;
+
+
+    video.preload =
+      "auto";
+
+
+    if (forViewer) {
+
+      video.controls =
+        true;
+
+      video.muted =
+        false;
+
+    } else {
+
+      video.muted =
+        true;
+
+      video.autoplay =
+        true;
+
+      video.setAttribute(
+        "autoplay",
+        ""
+      );
+
+      video.setAttribute(
+        "muted",
+        ""
+      );
+
+      video.setAttribute(
+        "loop",
+        ""
+      );
+
+      video.setAttribute(
+        "playsinline",
+        ""
+      );
+
+    }
+
+
+    return video;
+
+  }
+
+
+  /* IMAGE */
+
+  const img =
+    document.createElement(
+      "img"
+    );
+
+
+  img.src =
+    post.src;
+
+
+  img.alt =
+    post.caption ||
+    "Publication";
+
+
+  img.loading =
+    "lazy";
+
+
+  return img;
+
+}
+
   if (
     post.type ===
     "video"
@@ -2593,12 +2739,382 @@ $("#addPostBtn")
     "click",
     () => {
 
+      const overlay =
+        $("#publishChoiceOverlay");
+
+      if (overlay) {
+        overlay.hidden = false;
+      }
+
+    }
+  );
+$("#publishUploadBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      const overlay =
+        $("#publishChoiceOverlay");
+
+      if (overlay) {
+        overlay.hidden = true;
+      }
+
       $("#postInput")
         ?.click();
 
     }
   );
 
+
+$("#publishEmbedBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      const choiceOverlay =
+        $("#publishChoiceOverlay");
+
+      const embedOverlay =
+        $("#embedPostOverlay");
+
+      if (choiceOverlay) {
+        choiceOverlay.hidden = true;
+      }
+
+      if ($("#embedPostInput")) {
+        $("#embedPostInput").value = "";
+      }
+
+      if ($("#embedCaptionInput")) {
+        $("#embedCaptionInput").value = "";
+      }
+
+      if (embedOverlay) {
+        embedOverlay.hidden = false;
+      }
+
+    }
+  );
+
+
+$("#publishChoiceCancelBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      const overlay =
+        $("#publishChoiceOverlay");
+
+      if (overlay) {
+        overlay.hidden = true;
+      }
+
+    }
+  );
+
+
+$("#embedCancelBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      const overlay =
+        $("#embedPostOverlay");
+
+      if (overlay) {
+        overlay.hidden = true;
+      }
+
+    }
+  );
+function extractExternalMedia(
+  value
+) {
+
+  const text =
+    value.trim();
+
+  if (!text) {
+    throw new Error(
+      "Collez une URL ou une iframe."
+    );
+  }
+
+
+  /* IFRAME COMPLETE */
+
+  if (
+    /<iframe[\s>]/i.test(
+      text
+    )
+  ) {
+
+    const documentParsed =
+      new DOMParser()
+        .parseFromString(
+          text,
+          "text/html"
+        );
+
+    const iframe =
+      documentParsed
+        .querySelector(
+          "iframe"
+        );
+
+    const src =
+      iframe
+        ?.getAttribute(
+          "src"
+        )
+        ?.trim();
+
+    if (!src) {
+      throw new Error(
+        "Cette iframe ne contient pas d’adresse valide."
+      );
+    }
+
+    const url =
+      new URL(
+        src,
+        location.href
+      );
+
+    if (
+      url.protocol !==
+      "https:"
+    ) {
+      throw new Error(
+        "Seules les adresses HTTPS sont acceptées."
+      );
+    }
+
+    return {
+      url:
+        url.href,
+
+      sourceType:
+        "embed"
+    };
+
+  }
+
+
+  /* URL DIRECTE */
+
+  const url =
+    new URL(
+      text
+    );
+
+  if (
+    url.protocol !==
+    "https:"
+  ) {
+    throw new Error(
+      "Seules les adresses HTTPS sont acceptées."
+    );
+  }
+
+
+  return {
+    url:
+      url.href,
+
+    sourceType:
+      "external"
+  };
+
+}
+
+
+$("#embedPublishBtn")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      if (
+        !supabaseReady() ||
+        !currentUser
+      ) {
+        return;
+      }
+
+
+      const mediaInput =
+        $("#embedPostInput");
+
+      const captionInput =
+        $("#embedCaptionInput");
+
+      const button =
+        $("#embedPublishBtn");
+
+
+      const rawValue =
+        mediaInput
+          ?.value
+          .trim() ||
+        "";
+
+
+      const caption =
+        captionInput
+          ?.value
+          .trim() ||
+        "";
+
+
+      const type =
+        document
+          .querySelector(
+            'input[name="embedMediaType"]:checked'
+          )
+          ?.value ||
+        "video";
+
+
+      try {
+
+        button.disabled =
+          true;
+
+        button.textContent =
+          "Publication...";
+
+
+        const external =
+          extractExternalMedia(
+            rawValue
+          );
+
+
+        const {
+          data,
+          error
+        } =
+          await supabaseClient
+            .from("posts")
+            .insert({
+
+              user_id:
+                currentUser.id,
+
+              type,
+
+              source_type:
+                external.sourceType,
+
+              media_url:
+                external.url,
+
+              caption,
+
+              likes:
+                0
+
+            })
+            .select()
+            .single();
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        state.posts.unshift({
+
+          id:
+            data.id,
+
+          type:
+            data.type ||
+            type,
+
+          sourceType:
+            data.source_type ||
+            external.sourceType,
+
+          src:
+            data.media_url ||
+            external.url,
+
+          caption:
+            data.caption ||
+            caption,
+
+          likes:
+            0
+
+        });
+
+
+        save();
+
+        renderGrid();
+
+        renderProfile();
+
+
+        if (mediaInput) {
+          mediaInput.value =
+            "";
+        }
+
+        if (captionInput) {
+          captionInput.value =
+            "";
+        }
+
+
+        const overlay =
+          $("#embedPostOverlay");
+
+        if (overlay) {
+          overlay.hidden =
+            true;
+        }
+
+
+        toast(
+          type === "video"
+            ? "Vidéo intégrée"
+            : "Photo intégrée"
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Erreur publication externe :",
+          error
+        );
+
+        toast(
+          error?.message ||
+          "Impossible de publier ce média"
+        );
+
+
+      } finally {
+
+        if (button) {
+
+          button.disabled =
+            false;
+
+          button.textContent =
+            "Publier";
+
+        }
+
+      }
+
+    }
+  );
 
 $("#bottomAddPostBtn")
   ?.addEventListener(
