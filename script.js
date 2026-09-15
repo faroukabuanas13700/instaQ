@@ -5364,6 +5364,10 @@ if (!isEmbed) {
 
 }
 
+} // FERME openReels()
+
+function closeReels() {
+
 function closeReels() {
 
   const page =
