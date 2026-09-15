@@ -1992,29 +1992,6 @@ function mediaElement(
 
   
 
-  const img =
-    document.createElement(
-      "img"
-    );
-
-
-  img.src =
-    post.src;
-
-
-  img.alt =
-    post.caption ||
-    "Publication";
-
-
-  img.loading =
-    "lazy";
-
-
-  return img;
-
-}
-
 
 function playGridVideos() {
 
