@@ -1112,7 +1112,110 @@
       accept="image/*,video/*"
       hidden
     >
+<!-- CHOIX DE PUBLICATION -->
+<div
+  id="publishChoiceOverlay"
+  class="publish-choice-overlay"
+  hidden
+>
+  <section class="publish-choice-sheet">
 
+    <div class="publish-choice-handle"></div>
+
+    <h2>Créer une publication</h2>
+
+    <button
+      id="publishUploadBtn"
+      class="publish-choice-btn"
+      type="button"
+    >
+      📁 Téléverser une photo ou vidéo
+    </button>
+
+    <button
+      id="publishEmbedBtn"
+      class="publish-choice-btn"
+      type="button"
+    >
+      🔗 Intégrer un lien ou une iframe
+    </button>
+
+    <button
+      id="publishChoiceCancelBtn"
+      class="publish-choice-cancel"
+      type="button"
+    >
+      Annuler
+    </button>
+
+  </section>
+</div>
+
+
+<!-- PUBLICATION EXTERNE / IFRAME -->
+<div
+  id="embedPostOverlay"
+  class="embed-post-overlay"
+  hidden
+>
+  <section class="embed-post-sheet">
+
+    <div class="embed-post-handle"></div>
+
+    <h2>Intégrer un média</h2>
+
+    <textarea
+      id="embedPostInput"
+      placeholder="Collez ici une iframe ou une URL..."
+    ></textarea>
+
+    <div class="embed-type-choice">
+
+      <label>
+        <input
+          type="radio"
+          name="embedMediaType"
+          value="video"
+          checked
+        >
+        Vidéo
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="embedMediaType"
+          value="image"
+        >
+        Photo
+      </label>
+
+    </div>
+
+    <textarea
+      id="embedCaptionInput"
+      placeholder="Ajouter une légende..."
+      maxlength="2200"
+    ></textarea>
+
+    <button
+      id="embedPublishBtn"
+      class="embed-publish-btn"
+      type="button"
+    >
+      Publier
+    </button>
+
+    <button
+      id="embedCancelBtn"
+      class="embed-cancel-btn"
+      type="button"
+    >
+      Annuler
+    </button>
+
+  </section>
+</div>
 
     <!-- VISIONNEUSE -->
     <div
