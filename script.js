@@ -1990,76 +1990,7 @@ function mediaElement(
 
 }
 
-  if (
-    post.type ===
-    "video"
-  ) {
-
-    const video =
-      document.createElement(
-        "video"
-      );
-
-
-    video.src =
-      post.src;
-
-
-    video.loop =
-      true;
-
-
-    video.playsInline =
-      true;
-
-
-    video.preload =
-      "auto";
-
-
-    if (forViewer) {
-
-      video.controls =
-        true;
-
-      video.muted =
-        false;
-
-    } else {
-
-      video.muted =
-        true;
-
-      video.autoplay =
-        true;
-
-      video.setAttribute(
-  "autoplay",
-  ""
-);
-
-      video.setAttribute(
-        "muted",
-        ""
-      );
-
-      video.setAttribute(
-        "loop",
-        ""
-      );
-
-      video.setAttribute(
-        "playsinline",
-        ""
-      );
-
-    }
-
-
-    return video;
-
-  }
-
+  
 
   const img =
     document.createElement(
@@ -5438,7 +5369,7 @@ await updateReelsFollowButton(
 
   }
 
-  try {
+ 
 if (!isEmbed) {
 
   try {
@@ -7808,8 +7739,9 @@ function renderExploreGrid(posts) {
     .play()
     .catch(() => {});
 
-}
+  }
 
+}
       card.addEventListener(
   "click",
   async () => {
