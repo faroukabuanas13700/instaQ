@@ -2130,11 +2130,18 @@ function renderGrid() {
         );
 
 
-        media
-          .play()
-          .catch(
-            () => {}
-          );
+        if (
+  media.tagName ===
+  "VIDEO"
+) {
+
+  media
+    .play()
+    .catch(
+      () => {}
+    );
+
+}
 
       }
 
@@ -7182,7 +7189,7 @@ async function openUserProfile(
       await supabaseClient
         .from("posts")
         .select(
-          "id,user_id,type,media_url,caption,likes"
+          "id,user_id,type,source_type,media_url,caption,likes"
         )
         .eq(
           "user_id",
@@ -7257,7 +7264,9 @@ activeProfileId =
           type:
             post.type ||
             "image",
-
+sourceType:
+  post.source_type ||
+  "upload",
           src:
             post.media_url,
 
@@ -7587,7 +7596,7 @@ async function loadExplorePosts() {
       await supabaseClient
         .from("posts")
         .select(
-          "id,user_id,type,media_url,caption,likes"
+          "id,user_id,type,source_type,media_url,caption,likes"
         )
         .order(
           "id",
@@ -7988,8 +7997,8 @@ async function searchExplore(query) {
         await supabaseClient
           .from("posts")
           .select(
-            "id,user_id,type,media_url,caption,likes"
-          )
+  "id,user_id,type,source_type,media_url,caption,likes"
+)
           .ilike(
             "caption",
             `%#${tag}%`
@@ -8020,7 +8029,9 @@ async function searchExplore(query) {
             type:
               post.type ||
               "image",
-
+sourceType:
+  post.source_type ||
+  "upload",
             src:
               post.media_url,
 
