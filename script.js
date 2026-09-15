@@ -5158,7 +5158,19 @@ $("#reelsSoundBtn")
 
   const page = document.getElementById("reelsPage");
   const video = document.getElementById("reelsVideo");
+const embed =
+  document.getElementById(
+    "reelsEmbed"
+  );
 
+const soundButton =
+  document.getElementById(
+    "reelsSoundBtn"
+  );
+
+const isEmbed =
+  post?.sourceType ===
+  "embed";
   if (!page) {
     console.error("reelsPage introuvable");
     toast("Erreur : page Reels introuvable");
@@ -5198,16 +5210,87 @@ addPostOptionsButton(
 
   document.body.style.overflow = "hidden";
 
+  if (isEmbed) {
+
+  /* VIDEO IFRAME */
+
   try {
     video.pause();
   } catch {}
 
-  video.controls = false;
-  video.removeAttribute("controls");
+  video.removeAttribute(
+    "src"
+  );
 
-  video.src = post.src;
-  video.loop = true;
-  video.playsInline = true;
+  video.load();
+
+  video.hidden =
+    true;
+
+
+  if (embed) {
+
+    embed.hidden =
+      false;
+
+    embed.src =
+      post.src;
+
+  }
+
+
+  /* Le son d'une iframe est contrôlé
+     par son lecteur externe */
+
+  if (soundButton) {
+
+    soundButton.hidden =
+      true;
+
+  }
+
+} else {
+
+  /* VIDEO CLASSIQUE */
+
+  if (embed) {
+
+    embed.hidden =
+      true;
+
+    embed.removeAttribute(
+      "src"
+    );
+
+  }
+
+
+  video.hidden =
+    false;
+
+
+  try {
+    video.pause();
+  } catch {}
+
+
+  video.controls =
+    false;
+
+  video.removeAttribute(
+    "controls"
+  );
+
+
+  video.src =
+    post.src;
+
+  video.loop =
+    true;
+
+  video.playsInline =
+    true;
+
 
   video.setAttribute(
     "playsinline",
@@ -5219,13 +5302,24 @@ addPostOptionsButton(
     ""
   );
 
-  video.muted =
-  !startWithSound;
 
-updateReelsSoundIcon();
+  video.muted =
+    !startWithSound;
+
+
+  if (soundButton) {
+
+    soundButton.hidden =
+      false;
+
+  }
+
+
+  updateReelsSoundIcon();
 
   video.load();
 
+}
   const likeCount =
     document.getElementById(
       "reelsLikeCount"
@@ -5345,6 +5439,9 @@ await updateReelsFollowButton(
   }
 
   try {
+if (!isEmbed) {
+
+  try {
 
     await video.play();
 
@@ -5370,8 +5467,20 @@ function closeReels() {
     document.getElementById(
       "reelsVideo"
     );
+const embed =
+  document.getElementById(
+    "reelsEmbed"
+  );
+if (embed) {
 
+  embed.removeAttribute(
+    "src"
+  );
 
+  embed.hidden =
+    true;
+
+}
   if (video) {
 
     try {
@@ -7587,6 +7696,10 @@ async function loadExplorePosts() {
           userId: post.user_id,
           type:
             post.type || "image",
+          
+            sourceType:
+  post.source_type ||
+  "upload",
           src:
             post.media_url,
           caption:
@@ -7681,15 +7794,21 @@ function renderExploreGrid(posts) {
           icon
         );
 
-        media.muted = true;
-        media.loop = true;
-        media.autoplay = true;
-        media.playsInline = true;
+        if (
+  media.tagName ===
+  "VIDEO"
+) {
 
-        media
-          .play()
-          .catch(() => {});
-      }
+  media.muted = true;
+  media.loop = true;
+  media.autoplay = true;
+  media.playsInline = true;
+
+  media
+    .play()
+    .catch(() => {});
+
+}
 
       card.addEventListener(
   "click",
@@ -7775,8 +7894,8 @@ async function showExploreInterface() {
   const notificationsPage =
     $("#notificationsPage");
 
-  consawaitlowListPage =
-    $("#followListPage");
+  const followListPage =
+  $("#followListPage");
 
   const topbar =
     $(".topbar");
@@ -8504,8 +8623,9 @@ async function loadHomeFeed() {
       await supabaseClient
         .from("posts")
         .select(
-          "id,user_id,type,media_url,caption,likes"
-        )
+          .select(
+  "id,user_id,type,source_type,media_url,caption,likes"
+)
         .in(
           "user_id",
           followingIds
@@ -8533,11 +8653,15 @@ async function loadHomeFeed() {
             post.user_id,
 
           type:
-            post.type ||
-            "image",
+  post.type ||
+  "image",
 
-          src:
-            post.media_url,
+sourceType:
+  post.source_type ||
+  "upload",
+
+src:
+  post.media_urif
 
           caption:
             post.caption ||
@@ -8791,39 +8915,149 @@ async function loadHomeFeed() {
   post.type === "video"
 ) {
 
-  /* TOUJOURS MUET PAR DÉFAUT */
+  /* VIDEO NORMALE */
 
-  media.muted = true;
-  media.loop = true;
-  media.playsInline = true;
-  media.autoplay = true;
+  if (
+    media.tagName ===
+    "VIDEO"
+  ) {
+
+    media.muted = true;
+    media.loop = true;
+    media.playsInline = true;
+    media.autoplay = true;
+
+    media
+      .play()
+      .catch(() => {});
 
 
-  media
-    .play()
-    .catch(
-      () => {}
+    media.addEventListener(
+      "click",
+      () => {
+
+        openReels(
+          post
+        );
+
+      }
     );
 
 
-  media.addEventListener(
-    "click",
-    () => {
-
-      openReels(
-        post
+    const soundButton =
+      document.createElement(
+        "button"
       );
 
+    soundButton.type =
+      "button";
+
+    soundButton.className =
+      "feed-sound-btn";
+
+
+    function updateSoundIcon() {
+
+      soundButton.innerHTML =
+        media.muted
+          ? `
+            <svg viewBox="0 0 24 24">
+              <path d="M4 10v4h4l5 4V6L8 10H4z"></path>
+              <path d="M17 9l4 6"></path>
+              <path d="M21 9l-4 6"></path>
+            </svg>
+          `
+          : `
+            <svg viewBox="0 0 24 24">
+              <path d="M4 10v4h4l5 4V6L8 10H4z"></path>
+              <path d="M16 9c1 1 1 5 0 6"></path>
+              <path d="M19 7c2 3 2 7 0 10"></path>
+            </svg>
+          `;
+
     }
-  );
 
 
-  /* BOUTON SON */
+    updateSoundIcon();
 
-  const soundButton =
-    document.createElement(
-      "button"
+
+    soundButton.addEventListener(
+      "click",
+      event => {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        media.muted =
+          !media.muted;
+
+        updateSoundIcon();
+
+        media
+          .play()
+          .catch(() => {});
+
+      }
     );
+
+
+    mediaWrap.appendChild(
+      soundButton
+    );
+
+  }
+
+
+  /* VIDEO IFRAME */
+
+  else if (
+    media.tagName ===
+    "IFRAME"
+  ) {
+
+    media.style.pointerEvents =
+      "none";
+
+
+    const openEmbedButton =
+      document.createElement(
+        "button"
+      );
+
+    openEmbedButton.type =
+      "button";
+
+    openEmbedButton.className =
+      "feed-embed-open";
+
+    openEmbedButton.setAttribute(
+      "aria-label",
+      "Ouvrir la vidéo"
+    );
+
+
+    openEmbedButton.addEventListener(
+      "click",
+      event => {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        openReels(
+          post
+        );
+
+      }
+    );
+
+
+    mediaWrap.appendChild(
+      openEmbedButton
+    );
+
+  }
+
+}
 
   soundButton.type =
     "button";
