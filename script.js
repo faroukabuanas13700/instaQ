@@ -5373,7 +5373,6 @@ if (!isEmbed) {
 
 } // FERME openReels()
 
-function closeReels() {
 
 function closeReels() {
 
@@ -9615,9 +9614,9 @@ async function markAllNotificationsRead() {
       } =
         await supabaseClient
           .from("posts")
-          .select(
-            "id,user_id,type,media_url,caption"
-          )
+.select(
+  "id,user_id,type,source_type,media_url,caption"
+)
           .in(
             "id",
             postIds
@@ -10084,6 +10083,9 @@ else {
           id: post.id,
           userId: post.user_id,
           type: post.type,
+         sourceType:
+  post.source_type ||
+  "upload",
           src: post.media_url,
           caption:
             post.caption || "",
